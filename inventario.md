@@ -1,6 +1,6 @@
 # Inventario de Cocina
 
-> Actualizado: 2026-02-21 | Estados: 🔴 Bajo · 🟡 Medio · 🟢 Lleno
+> Actualizado: 2026-02-22 | Estados: 🔴 Bajo · 🟡 Medio · 🟢 Lleno
 
 ---
 
@@ -70,6 +70,7 @@
 | Mozzarella de búfala | — | 🟢 | 2026-02-25 | |
 | Aguacate | — | 🔴 | 2026-02-22 | 1/4 — consumir hoy |
 | Crushed red pepper | — | 🟢 | — | |
+| Queso tilsit | — | 🟢 | 2026-03-07 | |
 
 ---
 
@@ -81,7 +82,6 @@
 | Pasta tornillos | — | 🟢 | — | |
 | Pasta larga | — | 🟢 | — | |
 | Pasta de lenteja | — | 🟢 | — | Poca |
-| Noodles picantes | — | 🟢 | — | |
 | Cardamomo | — | 🟢 | — | |
 | Pimienta negra molida | — | 🟢 | — | |
 | Canela en rama | — | 🟢 | — | |
