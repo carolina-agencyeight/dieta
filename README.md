@@ -115,7 +115,7 @@ Claude asigna fechas típicas al agregar items a la nevera sin fecha especificad
 ## Comandos — Exportar
 
 ```
-"Exporta el plan de esta semana a CSV"    → genera plan_semana_W##.csv
+"Exporta el plan de esta semana a CSV"    → genera plan_semana_YYYY_MM_DD.csv
 ```
 
 El CSV tiene columnas: Día, Momento, Plato, Ingredientes, Notas.

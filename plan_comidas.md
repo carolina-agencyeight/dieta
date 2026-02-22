@@ -12,7 +12,7 @@
 
 <!-- Ejemplo de cómo se ve una semana completa:
 
-## Semana 2026-W09 (23 feb – 01 mar)
+## Semana 2026-02-23 (23 feb – 01 mar)
 
 ### Lunes 23/02 ⬜
 
@@ -45,7 +45,7 @@
 
 ---
 
-## Semana 2026-W09 (23 feb – 01 mar)
+## Semana 2026-02-23 (23 feb – 01 mar)
 
 ### Lunes 23/02 ⬜
 
