@@ -50,7 +50,10 @@
 ### Lunes 23/02 ⬜
 
 #### Ayuno
-> Sin comida programada
+**Infusión de flor de jamaica**
+- [ ] Flor de jamaica 🟢→🟢
+- [ ] Canela en rama 🟢→🟢
+- [ ] Cayenne pepper 🟢→🟢
 
 #### Desayuno
 **Tostadas con huevo y espinaca**
@@ -85,7 +88,11 @@
 ### Martes 24/02 ⬜
 
 #### Ayuno
-> Sin comida programada
+**Batido verde**
+- [ ] Espinaca 🟡→🟡
+- [ ] Manzana verde 🟢→🟢
+- [ ] Limones 🟢→🟢
+- [ ] Piña (congelador) 🟢→🟢
 
 #### Desayuno
 **Pancakes de plátano maduro**
@@ -120,7 +127,8 @@
 ### Miércoles 25/02 ⬜
 
 #### Ayuno
-> Sin comida programada
+**Vinagre de cidra de manzana**
+- [ ] Vinagre de cidra de manzana 🟢→🟢
 
 #### Desayuno
 **Avena con banano y miel**
@@ -155,7 +163,9 @@
 ### Jueves 26/02 ⬜
 
 #### Ayuno
-> Sin comida programada
+**Batido de guatila con piña**
+- [ ] Guatila 🟢→🟡
+- [ ] Piña (congelador) 🟢→🟢
 
 #### Desayuno
 **Tostadas con ghee, miel y huevos cocidos**
@@ -192,7 +202,10 @@
 ### Viernes 27/02 ⬜
 
 #### Ayuno
-> Sin comida programada
+**Infusión de flor de jamaica**
+- [ ] Flor de jamaica 🟢→🟢
+- [ ] Canela en rama 🟢→🟢
+- [ ] Cayenne pepper 🟢→🟢
 
 #### Desayuno
 **Batido de piña con leche**
@@ -221,7 +234,11 @@
 ### Sábado 28/02 ⬜
 
 #### Ayuno
-> Sin comida programada
+**Batido verde**
+- [ ] Espinaca 🟡→🔴
+- [ ] Manzana verde 🟢→🟢
+- [ ] Limones 🟢→🟢
+- [ ] Piña (congelador) 🟢→🟢
 
 #### Desayuno
 **Huevos con salchicha ranchera**
@@ -252,7 +269,8 @@
 ### Domingo 01/03 ⬜
 
 #### Ayuno
-> Sin comida programada
+**Vinagre de cidra de manzana**
+- [ ] Vinagre de cidra de manzana 🟢→🟢
 
 #### Desayuno
 **Cayeye con plátanos verdes**
