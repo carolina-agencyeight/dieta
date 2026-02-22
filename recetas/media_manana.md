@@ -1,27 +1,51 @@
 # Recetario — Media Mañana
 
-> Snacks, frutas y opciones ligeras para entre el desayuno y el almuerzo.
-
-<!-- FORMATO DE RECETA:
-
-## Nombre del plato
-
-> ⏱ Prep: X min | Total: X min
-> 🍽 Porciones: X | 🔥 Calorías aprox: X kcal
-> 💪 Proteína: Xg | 🍚 Carbs: Xg | 🫙 Grasas: Xg
-
-### Ingredientes (X porciones)
-- Ingrediente 1
-- Ingrediente 2
-
-### Preparación
-1. Paso 1
-2. Paso 2
-
----
--->
+> Frutas frescas para consumir entre el desayuno y el almuerzo.
 
 ---
 
-<!-- Agrega tus primeras opciones de media mañana aquí.
-     Ejemplos: frutas, yogur, frutos secos, batidos, snacks saludables. -->
+## Arándanos
+
+> 🍽 Porción: 100g
+
+- 100g de arándanos frescos o descongelados.
+
+---
+
+## Kiwi
+
+> 🍽 Porción: 120g
+
+- 120g de kiwi pelado y en rodajas.
+
+---
+
+## Mandarina
+
+> 🍽 Porción: 1 unidad mediana
+
+- 1 mandarina pelada.
+
+---
+
+## Piña
+
+> 🍽 Porción: 120g
+
+- 120g de piña en trozos.
+
+---
+
+## Pomelo
+
+> 🍽 Porción: 120g
+
+- 120g de pomelo pelado.
+
+---
+
+## Fresas
+
+> 🍽 Porción: 7 fresas
+
+- 7 fresas lavadas y limpias.
