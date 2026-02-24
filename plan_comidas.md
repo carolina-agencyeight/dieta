@@ -50,10 +50,7 @@
 ### Lunes 23/02 ✅
 
 #### Ayuno
-**Infusión de flor de jamaica**
-- [x] Flor de jamaica 🟢→🟢
-- [x] Canela en rama 🟢→🟢
-- [x] Cayenne pepper 🟢→🟢
+> ⏭️ No se tomó
 
 #### Desayuno
 **Avena reposada en leche + Huevos cocidos (2)**
@@ -82,11 +79,7 @@
 ### Martes 24/02 ⬜
 
 #### Ayuno
-**Batido verde**
-- [x] Espinaca 🔴→🔴
-- [x] Manzana verde 🟢→🟢
-- [x] Limones 🟢→🟡
-- [x] Piña (congelador) 🟢→🟢
+> ⏭️ No se tomó
 
 #### Desayuno
 **Pancake de plátano maduro con aceite de coco**

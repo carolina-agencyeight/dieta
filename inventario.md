@@ -45,7 +45,7 @@
 | Pasta (cocida/fresca) | — | 🔴 | 2026-02-24 | ⚠️ Vence HOY — verificar |
 | Zanahorias | — | 🟢 | 2026-03-07 | |
 | Plátanos maduros | 3-4 uds | 🟡 | 2026-02-24 | ⚠️ Vence HOY — usados 1-2 en pancake |
-| Limones | — | 🔴 | 2026-03-07 | Usados en batido y salmón |
+| Limones | — | 🟡 | 2026-03-07 | Usados en salmón martes |
 | Lechuga | — | 🔴 | 2026-02-23 | Agotada en ensalada lunes |
 | Huevos | — | 🟡 | 2026-03-07 | 3 usados: 2 cocidos lunes + 1 pancake martes |
 | Piña | — | 🟢 | 2026-02-25 | ⚠️ Vence mañana — sin usar |
