@@ -96,11 +96,11 @@
 - [x] Salmón 🟡→🔴
 - [x] Eneldo 🟢→🟡
 - [x] Ajo 🟢→🟢
-- [x] Limones 🟡→🔴
+- [x] Limones 🟢→🟡
 
 #### Merienda
-**Pistachos**
-- [ ] Pistachos 🟢→🟡
+**Piña en rodajas**
+- [x] Piña (nevera) 🟢→🔴
 
 #### Cena
 **Sopa de zanahoria con crema de leche**
