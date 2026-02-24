@@ -1,6 +1,6 @@
 # Lista de la Compra
 
-> Generada: 2026-02-21 | Semana activa: W08
+> Actualizada: 2026-02-24 | Semana activa: 2026-02-23
 
 ---
 
@@ -13,9 +13,10 @@
 - [ ] Pan masa madre con queso costeño
 
 ### 🧊 Nevera
-- [ ] Lechuga — *(vence 2026-02-23)*
-- [ ] Jugo de naranja — *(vence 2026-02-22, consumir hoy)*
-- [ ] Aguacate — *(vence 2026-02-22, consumir hoy)*
+- [ ] Piña — *(agotada)*
+- [ ] Lechuga — *(agotada)*
+- [ ] Jugo de naranja — *(venció 2026-02-22)*
+- [ ] Aguacate — *(venció 2026-02-22)*
 
 ---
 
