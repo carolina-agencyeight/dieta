@@ -1,6 +1,6 @@
 # Inventario de Cocina
 
-> Actualizado: 2026-02-22 | Estados: 🔴 Bajo · 🟡 Medio · 🟢 Lleno
+> Actualizado: 2026-02-24 | Estados: 🔴 Bajo · 🟡 Medio · 🟢 Lleno
 
 ---
 
@@ -12,11 +12,11 @@
 | Pechugas | 2 uds | 🟢 | — | |
 | Loncha de cerdo | 2 bolsas | 🟡 | — | |
 | Lomo de cerdo | 1 porción | 🔴 | — | |
-| Capón | 4 uds | 🔴 | — | |
+| Capón | 2-3 uds | 🔴 | — | Usado 1-2 en bistec lunes |
 | Carne molida | 2 bolsas | 🟡 | — | |
 | Tilapia | — | 🟢 | — | |
 | Lomo de atún | — | 🟢 | — | |
-| Salmón | — | 🟡 | — | |
+| Salmón | — | 🔴 | — | Usado almuerzo martes |
 | Piña | — | 🟢 | — | |
 | Arándanos | — | 🟢 | — | |
 | Cáscaras de piña | — | 🟢 | — | |
@@ -37,18 +37,18 @@
 
 | Artículo | Cantidad | Estado | Vence | Nota |
 |----------|----------|--------|-------|------|
-| Espinaca | — | 🟡 | 2026-02-26 | Medio ramo |
+| Espinaca | — | 🔴 | 2026-02-26 | Casi agotada — usada en ensalada y batido |
 | Guineos verdes | — | 🟢 | 2026-03-07 | |
-| Bananos | 3 uds | 🟢 | 2026-02-25 | |
-| Cilantro | — | 🟡 | 2026-02-26 | |
-| Eneldo | — | 🟢 | 2026-02-28 | |
-| Pasta (cocida/fresca) | — | 🟢 | 2026-02-24 | |
+| Bananos | 3 uds | 🟢 | 2026-02-25 | ⚠️ Vence mañana — sin usar |
+| Cilantro | — | 🟡 | 2026-02-26 | ⚠️ Vence en 2 días — sin usar |
+| Eneldo | — | 🟡 | 2026-02-28 | Usado en salmón martes |
+| Pasta (cocida/fresca) | — | 🔴 | 2026-02-24 | ⚠️ Vence HOY — verificar |
 | Zanahorias | — | 🟢 | 2026-03-07 | |
-| Plátanos maduros | 5 uds | 🟢 | 2026-02-24 | Consumir pronto |
-| Limones | — | 🟢 | 2026-03-07 | |
-| Lechuga | — | 🔴 | 2026-02-23 | Poca — consumir hoy |
-| Huevos | — | 🟢 | 2026-03-07 | |
-| Piña | — | 🟢 | 2026-02-25 | |
+| Plátanos maduros | 3-4 uds | 🟡 | 2026-02-24 | ⚠️ Vence HOY — usados 1-2 en pancake |
+| Limones | — | 🔴 | 2026-03-07 | Usados en batido y salmón |
+| Lechuga | — | 🔴 | 2026-02-23 | Agotada en ensalada lunes |
+| Huevos | — | 🟡 | 2026-03-07 | 3 usados: 2 cocidos lunes + 1 pancake martes |
+| Piña | — | 🟢 | 2026-02-25 | ⚠️ Vence mañana — sin usar |
 | Manzana verde | — | 🟢 | 2026-03-07 | |
 | Manzana roja | — | 🟢 | 2026-03-07 | |
 | Jamón serrano | — | 🟢 | 2026-03-07 | |
@@ -57,18 +57,18 @@
 | Queso mozzarella cubitos | — | 🟡 | 2026-03-07 | |
 | Quesito | — | 🟢 | 2026-03-07 | |
 | Queso mozzarella lonchas | — | 🟢 | 2026-03-07 | |
-| Leche | — | 🟡 | 2026-02-28 | |
+| Leche | — | 🔴 | 2026-02-28 | Usada en avena reposada lunes |
 | Aderezos | — | 🟢 | — | Variados |
-| Pan tajado | — | 🟢 | 2026-02-26 | |
+| Pan tajado | — | 🟢 | 2026-02-26 | ⚠️ Vence en 2 días — sin usar |
 | Salsa pesto | — | 🟢 | — | |
 | Pasta de tomate | — | 🟢 | — | |
 | Pasta de ajo | — | 🟢 | — | |
 | Ghee | — | 🟡 | — | |
 | Crema de leche | — | 🟡 | 2026-02-28 | |
 | Cerveza | — | 🟢 | — | |
-| Jugo de naranja | — | 🔴 | 2026-02-22 | Poco — consumir hoy |
-| Mozzarella de búfala | — | 🟢 | 2026-02-25 | |
-| Aguacate | — | 🔴 | 2026-02-22 | 1/4 — consumir hoy |
+| Jugo de naranja | — | 🔴 | 2026-02-22 | ⚠️ Venció 2026-02-22 — verificar |
+| Mozzarella de búfala | — | 🟢 | 2026-02-25 | ⚠️ Vence mañana — sin usar |
+| Aguacate | — | 🔴 | 2026-02-22 | ⚠️ Venció 2026-02-22 — verificar |
 | Crushed red pepper | — | 🟢 | — | |
 | Queso tilsit | — | 🟢 | 2026-03-07 | |
 
@@ -102,6 +102,7 @@
 | Salsa teriyaki | — | 🟢 | — | |
 | Aceite de oliva | — | 🟢 | — | |
 | Aceite vegetal | — | 🟢 | — | |
+| Aceite de coco | — | 🟢 | 2026-03-12 | |
 | Flor de jamaica | — | 🟢 | — | |
 | Té verde | — | 🟢 | — | |
 | Maíz peto | — | 🟢 | — | |
@@ -120,10 +121,10 @@
 | Vinagre de cidra de manzana | — | 🟢 | — | |
 | Café instantáneo | — | 🟢 | — | |
 | Café molido | — | 🟢 | — | |
-| Avena en hojuelas | — | 🟢 | — | |
+| Avena en hojuelas | — | 🟡 | — | Usada en avena reposada lunes |
 | Chai en polvo | — | 🟢 | — | |
 | Chia seeds | — | 🟢 | — | |
-| Mezcla de pancakes | — | 🟢 | — | |
+| Mezcla de pancakes | — | 🟡 | — | Usada en pancake martes |
 | Mezcla de buñuelos | — | 🟢 | — | |
 | Mezcla de natilla | — | 🟢 | — | |
 | Salsa BBQ | — | 🟢 | — | |

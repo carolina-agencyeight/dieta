@@ -47,41 +47,35 @@
 
 ## Semana 2026-02-23 (23 feb – 01 mar)
 
-### Lunes 23/02 ⬜
+### Lunes 23/02 ✅
 
 #### Ayuno
 **Infusión de flor de jamaica**
-- [ ] Flor de jamaica 🟢→🟢
-- [ ] Canela en rama 🟢→🟢
-- [ ] Cayenne pepper 🟢→🟢
+- [x] Flor de jamaica 🟢→🟢
+- [x] Canela en rama 🟢→🟢
+- [x] Cayenne pepper 🟢→🟢
 
 #### Desayuno
-**Tostadas con huevo y espinaca**
-- [ ] Pan tajado 🟢→🟡
-- [ ] Huevos 🟢→🟡
-- [ ] Espinaca 🟡→🔴
-- [ ] Ghee 🟡→🟡
+**Avena reposada en leche + Huevos cocidos (2)**
+- [x] Avena en hojuelas 🟢→🟡
+- [x] Leche 🟡→🔴
+- [x] Huevos 🟢→🟡
 
 #### Media mañana
-**Banano**
-- [ ] Bananos 🟢→🟡
+> ⏭️ No se comió
 
 #### Almuerzo
-**Pasta con pollo guisado y cilantro**
-- [ ] Pasta tornillos 🟢→🟡
-- [ ] Pollo guisado 🟢→🟡
-- [ ] Cilantro 🟡→🔴
-- [ ] Pasta (cocida/fresca) 🟢→🔴
+**Ensalada de espinaca, lechuga y pepino + Capón en bistec con tomate y cebolla roja**
+- [x] Espinaca 🟡→🔴
+- [x] Lechuga 🔴→🔴 (agotada)
+- [x] Capón 🔴→🔴 (1-2 uds usados)
+- [x] Aceite de oliva 🟢→🟢
 
 #### Merienda
-**Pistachos**
-- [ ] Pistachos 🟢→🟡
+> ⏭️ Acaí por fuera — sin impacto en inventario
 
 #### Cena
-**Sándwich de jamón serrano y mozzarella**
-- [ ] Pan tajado 🟡→🔴
-- [ ] Jamón serrano 🟢→🟡
-- [ ] Queso mozzarella lonchas 🟢→🟡
+> ⏭️ No se cenó
 
 ---
 
@@ -89,31 +83,31 @@
 
 #### Ayuno
 **Batido verde**
-- [ ] Espinaca 🟡→🟡
-- [ ] Manzana verde 🟢→🟢
-- [ ] Limones 🟢→🟢
-- [ ] Piña (congelador) 🟢→🟢
+- [x] Espinaca 🔴→🔴
+- [x] Manzana verde 🟢→🟢
+- [x] Limones 🟢→🟡
+- [x] Piña (congelador) 🟢→🟢
 
 #### Desayuno
-**Pancakes de plátano maduro**
-- [ ] Mezcla de pancakes 🟢→🟡
-- [ ] Plátanos maduros 🟢→🟡
-- [ ] Aceite vegetal 🟢→🟢
+**Pancake de plátano maduro con aceite de coco**
+- [x] Plátanos maduros 🟢→🟡
+- [x] Huevos 🟡→🟡 (1 ud)
+- [x] Aceite de coco 🟢→🟢
+- [x] Mezcla de pancakes 🟢→🟡
 
 #### Media mañana
-**Piña en rodajas**
-- [ ] Piña (nevera) 🟢→🔴
+> ⏭️ No se comió
 
 #### Almuerzo
-**Salmón al limón con eneldo y arroz**
-- [ ] Salmón 🟡→🔴
-- [ ] Limones 🟢→🟡
-- [ ] Eneldo 🟢→🟡
-- [ ] Arroz blanco 🟢→🟢
+**Salmón con romero (huerta), eneldo, ajo y limón**
+- [x] Salmón 🟡→🔴
+- [x] Eneldo 🟢→🟡
+- [x] Ajo 🟢→🟢
+- [x] Limones 🟡→🔴
 
 #### Merienda
 **Pistachos**
-- [ ] Pistachos 🟡→🔴
+- [ ] Pistachos 🟢→🟡
 
 #### Cena
 **Sopa de zanahoria con crema de leche**
