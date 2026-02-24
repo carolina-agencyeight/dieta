@@ -103,11 +103,10 @@
 - [x] Piña (nevera) 🟢→🔴
 
 #### Cena
-**Sopa de zanahoria con crema de leche**
-- [ ] Zanahorias 🟢→🟡
-- [ ] Crema de leche 🟡→🔴
-- [ ] Ajo 🟢→🟢
-- [ ] Sal 🟢→🟢
+**Sándwich de jamón serrano y mozzarella**
+- [ ] Pan tajado 🟢→🟡
+- [ ] Jamón serrano 🟢→🟡
+- [ ] Queso mozzarella lonchas 🟢→🟡
 
 ---
 
