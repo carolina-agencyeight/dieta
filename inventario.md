@@ -39,14 +39,13 @@
 |----------|----------|--------|-------|------|
 | Espinaca | — | 🔴 | 2026-02-26 | Casi agotada — usada en ensalada y batido |
 | Guineos verdes | — | 🟢 | 2026-03-07 | |
-| Bananos | 3 uds | 🟢 | 2026-02-25 | ⚠️ Vence mañana — sin usar |
-| Cilantro | — | 🟡 | 2026-02-26 | ⚠️ Vence en 2 días — sin usar |
-| Eneldo | — | 🟡 | 2026-02-28 | Usado en salmón martes |
-| Pasta (cocida/fresca) | — | 🔴 | 2026-02-24 | ⚠️ Vence HOY — verificar |
+| Bananos | 2 uds | 🟡 | 2026-03-01 | 1 comido media mañana miércoles |
+| Cilantro | — | 🟡 | 2026-03-04 | |
+| Eneldo | — | 🟡 | 2026-03-04 | Usado en salmón martes |
 | Zanahorias | — | 🟢 | 2026-03-07 | |
-| Plátanos maduros | 3-4 uds | 🟡 | 2026-02-24 | ⚠️ Vence HOY — usados 1-2 en pancake |
+| Plátanos maduros | 3 uds | 🟡 | 2026-03-05 | |
 | Limones | — | 🟡 | 2026-03-07 | Usados en salmón martes |
-| Lechuga | — | 🔴 | 2026-02-23 | Agotada en ensalada lunes |
+| Lechuga | — | 🟡 | — | Queda algo |
 | Huevos | — | 🔴 | 2026-03-07 | 5 usados: lunes x2, martes x1, miércoles x2 |
 | Piña | — | 🔴 | 2026-02-25 | Usada en merienda martes |
 | Manzana verde | — | 🟢 | 2026-03-07 | |
@@ -57,21 +56,19 @@
 | Queso mozzarella cubitos | — | 🟡 | 2026-03-07 | |
 | Quesito | — | 🟢 | 2026-03-07 | |
 | Queso mozzarella lonchas | — | 🟢 | 2026-03-07 | |
-| Leche | — | 🔴 | 2026-02-28 | Usada en avena reposada lunes |
+| Leche | — | 🟢 | 2026-02-28 | 2 bolsas |
 | Aderezos | — | 🟢 | — | Variados |
-| Pan tajado | — | 🟢 | 2026-02-26 | ⚠️ Vence en 2 días — sin usar |
+| Pan tajado | 3 tajadas | 🔴 | 2026-02-26 | |
 | Salsa pesto | — | 🟢 | — | |
 | Pasta de tomate | — | 🟢 | — | |
 | Pasta de ajo | — | 🟢 | — | |
 | Ghee | — | 🟡 | — | |
 | Crema de leche | — | 🟡 | 2026-02-28 | |
 | Cerveza | — | 🟢 | — | |
-| Jugo de naranja | — | 🔴 | 2026-02-22 | ⚠️ Venció 2026-02-22 — verificar |
 | Mozzarella de búfala | — | 🟡 | 2026-03-30 | Usada en cena martes |
-| Aguacate | — | 🔴 | 2026-02-22 | ⚠️ Venció 2026-02-22 — verificar |
 | Crushed red pepper | — | 🟢 | — | |
 | Yogurt griego | — | 🟢 | 2026-03-15 | |
-| Queso tilsit | — | 🟢 | 2026-03-07 | |
+| Queso tilsit | — | 🟢 | 2026-04-25 | |
 
 ---
 
@@ -123,7 +120,7 @@
 | Vinagre de cidra de manzana | — | 🟢 | — | |
 | Café instantáneo | — | 🟢 | — | |
 | Café molido | — | 🟢 | — | |
-| Avena en hojuelas | — | 🔴 | — | Usada lunes y miércoles |
+| Avena en hojuelas | — | 🟢 | — | |
 | Chai en polvo | — | 🟢 | — | |
 | Chia seeds | — | 🟢 | — | |
 | Mezcla de pancakes | — | 🟡 | — | Usada en pancake martes |

@@ -123,8 +123,8 @@
 - [x] Huevos 🟡→🔴
 
 #### Media mañana
-**Manzana roja**
-- [ ] Manzana roja 🟢→🟡
+**Banano**
+- [x] Bananos 🟢→🟡 (quedan 2)
 
 #### Almuerzo
 **Lentejas con carne molida**

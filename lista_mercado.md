@@ -15,9 +15,8 @@
 ### 🧊 Nevera
 - [ ] Espinaca — *(agotada)*
 - [ ] Piña — *(agotada)*
-- [ ] Lechuga — *(agotada)*
-- [ ] Jugo de naranja — *(venció 2026-02-22)*
-- [ ] Aguacate — *(venció 2026-02-22)*
+- [ ] Jugo de naranja — *(agotado)*
+- [ ] Aguacate — *(botado)*
 
 ---
 
