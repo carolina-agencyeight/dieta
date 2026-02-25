@@ -36,6 +36,7 @@
 
 ## 🟡 Opcionales (en Medio — ¿reponer esta semana?)
 
+- [ ] Mantequilla de maní
 - [ ] Sodas Hatsu
 - [ ] Porciones de pollo *(Congelador)*
 - [ ] Loncha de cerdo *(Congelador)*

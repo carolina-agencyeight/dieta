@@ -38,7 +38,7 @@
 | Artículo | Cantidad | Estado | Vence | Nota |
 |----------|----------|--------|-------|------|
 | Aderezos | — | 🟢 | — | Variados |
-| Bananos | 2 uds | 🟡 | 2026-03-01 | |
+| Bananos | 1 ud | 🔴 | 2026-03-01 | |
 | Cerveza | — | 🟢 | — | |
 | Chorizitos | — | 🟢 | 2026-03-07 | |
 | Cilantro | — | 🟡 | 2026-03-04 | |
@@ -50,10 +50,10 @@
 | Guineos verdes | — | 🟢 | 2026-03-07 | |
 | Huevos | — | 🔴 | 2026-03-07 | 5 usados: lunes x2, martes x1, miércoles x2 |
 | Jamón serrano | — | 🟢 | 2026-03-07 | |
-| Leche | — | 🟢 | 2026-02-28 | 2 bolsas |
+| Leche | — | 🟡 | 2026-02-28 | Bolsa y media |
 | Lechuga | — | 🟡 | — | Queda algo |
 | Limones | — | 🟡 | 2026-03-07 | Usados en salmón martes |
-| Manzana roja | — | 🟢 | 2026-03-07 | |
+| Manzana roja | 2 uds | 🟡 | 2026-03-07 | |
 | Manzana verde | — | 🟢 | 2026-03-07 | |
 | Mozzarella de búfala | — | 🟡 | 2026-03-30 | Usada en cena martes |
 | Pan tajado | 3 tajadas | 🔴 | 2026-02-26 | |
@@ -67,7 +67,7 @@
 | Queso tilsit | — | 🟢 | 2026-04-25 | |
 | Salchicha ranchera | — | 🟡 | 2026-03-07 | |
 | Salsa pesto | — | 🟢 | — | |
-| Yogurt griego | — | 🟢 | 2026-03-15 | |
+| Yogurt griego | ¼ taza | 🔴 | 2026-03-15 | |
 | Zanahorias | — | 🟢 | 2026-03-07 | |
 
 ---

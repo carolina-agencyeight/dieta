@@ -135,8 +135,11 @@
 - [x] Bananos 🟡→🔴 (½ ud)
 
 #### Merienda
-**Medio banano**
-- [ ] Bananos 🔴→🔴 (½ ud restante)
+**Batido de manzana roja, banano, leche y yogurt griego**
+- [x] Manzana roja 🟢→🟡
+- [x] Bananos 🟡→🔴 (½ ud)
+- [x] Leche 🟢→🟡
+- [x] Yogurt griego 🟢→🔴
 
 #### Cena
 **Sándwich de atún con aderezos**
