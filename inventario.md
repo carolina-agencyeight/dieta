@@ -38,7 +38,7 @@
 | Artículo | Cantidad | Estado | Vence | Nota |
 |----------|----------|--------|-------|------|
 | Aderezos | — | 🟢 | — | Variados |
-| Bananos | 1 ud | 🔴 | 2026-03-01 | ½ almuerzo + ½ merienda miércoles |
+| Bananos | 2 uds | 🟡 | 2026-03-01 | |
 | Cerveza | — | 🟢 | — | |
 | Chorizitos | — | 🟢 | 2026-03-07 | |
 | Cilantro | — | 🟡 | 2026-03-04 | |
@@ -102,7 +102,7 @@
 | Hojas de laurel | — | 🟢 | — | |
 | Italian seasoning | — | 🟢 | — | |
 | Jengibre en polvo | — | 🟢 | — | |
-| Lentejas | — | 🟡 | — | |
+| Lentejas | — | 🟢 | — | |
 | Maggi | — | 🟢 | — | |
 | Maizena | — | 🟢 | — | |
 | Maíz peto | — | 🟢 | — | |
