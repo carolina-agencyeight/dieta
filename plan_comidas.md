@@ -103,24 +103,24 @@
 - [x] Piña (nevera) 🟢→🔴
 
 #### Cena
-**Sándwich de jamón serrano y mozzarella**
-- [ ] Pan tajado 🟢→🟡
-- [ ] Jamón serrano 🟢→🟡
-- [ ] Queso mozzarella lonchas 🟢→🟡
+**Sándwich de jamón serrano con tomates secos y queso de búfala**
+- [x] Pan tajado 🟢→🟡
+- [x] Jamón serrano 🟢→🟡
+- [x] Tomates secos 🟢→🟢
+- [x] Mozzarella de búfala 🟢→🟡
 
 ---
 
 ### Miércoles 25/02 ⬜
 
 #### Ayuno
-**Vinagre de cidra de manzana**
-- [ ] Vinagre de cidra de manzana 🟢→🟢
+> ⏭️ No se tomó
 
 #### Desayuno
-**Avena con banano y miel**
-- [ ] Avena en hojuelas 🟢→🟡
-- [ ] Bananos 🟡→🔴
-- [ ] Miel 🟢→🟢
+**Avena en leche + Huevos cocidos (2)**
+- [x] Avena en hojuelas 🟡→🔴
+- [x] Leche 🔴→🔴
+- [x] Huevos 🟡→🔴
 
 #### Media mañana
 **Manzana roja**

@@ -13,6 +13,7 @@
 - [ ] Pan masa madre con queso costeño
 
 ### 🧊 Nevera
+- [ ] Espinaca — *(agotada)*
 - [ ] Piña — *(agotada)*
 - [ ] Lechuga — *(agotada)*
 - [ ] Jugo de naranja — *(venció 2026-02-22)*
@@ -36,6 +37,7 @@
 
 ## 🟡 Opcionales (en Medio — ¿reponer esta semana?)
 
+- [ ] Sodas Hatsu
 - [ ] Porciones de pollo *(Congelador)*
 - [ ] Loncha de cerdo *(Congelador)*
 - [ ] Carne molida *(Congelador)*

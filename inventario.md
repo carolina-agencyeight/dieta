@@ -1,6 +1,6 @@
 # Inventario de Cocina
 
-> Actualizado: 2026-02-24 | Estados: 🔴 Bajo · 🟡 Medio · 🟢 Lleno
+> Actualizado: 2026-02-25 | Estados: 🔴 Bajo · 🟡 Medio · 🟢 Lleno
 
 ---
 
@@ -47,7 +47,7 @@
 | Plátanos maduros | 3-4 uds | 🟡 | 2026-02-24 | ⚠️ Vence HOY — usados 1-2 en pancake |
 | Limones | — | 🟡 | 2026-03-07 | Usados en salmón martes |
 | Lechuga | — | 🔴 | 2026-02-23 | Agotada en ensalada lunes |
-| Huevos | — | 🟡 | 2026-03-07 | 3 usados: 2 cocidos lunes + 1 pancake martes |
+| Huevos | — | 🔴 | 2026-03-07 | 5 usados: lunes x2, martes x1, miércoles x2 |
 | Piña | — | 🔴 | 2026-02-25 | Usada en merienda martes |
 | Manzana verde | — | 🟢 | 2026-03-07 | |
 | Manzana roja | — | 🟢 | 2026-03-07 | |
@@ -67,9 +67,10 @@
 | Crema de leche | — | 🟡 | 2026-02-28 | |
 | Cerveza | — | 🟢 | — | |
 | Jugo de naranja | — | 🔴 | 2026-02-22 | ⚠️ Venció 2026-02-22 — verificar |
-| Mozzarella de búfala | — | 🟢 | 2026-02-25 | ⚠️ Vence mañana — sin usar |
+| Mozzarella de búfala | — | 🟡 | 2026-03-30 | Usada en cena martes |
 | Aguacate | — | 🔴 | 2026-02-22 | ⚠️ Venció 2026-02-22 — verificar |
 | Crushed red pepper | — | 🟢 | — | |
+| Yogurt griego | — | 🟢 | 2026-03-15 | |
 | Queso tilsit | — | 🟢 | 2026-03-07 | |
 
 ---
@@ -108,6 +109,7 @@
 | Maíz peto | — | 🟢 | — | |
 | Promasa (harina pan) | — | 🟢 | — | |
 | Reducción vinagre balsámico | — | 🟢 | — | |
+| Tomates secos | — | 🟢 | — | |
 | Ajo | — | 🟢 | — | |
 | Maggi | — | 🟢 | — | |
 | Esencia de vainilla | — | 🟢 | — | |
@@ -121,7 +123,7 @@
 | Vinagre de cidra de manzana | — | 🟢 | — | |
 | Café instantáneo | — | 🟢 | — | |
 | Café molido | — | 🟢 | — | |
-| Avena en hojuelas | — | 🟡 | — | Usada en avena reposada lunes |
+| Avena en hojuelas | — | 🔴 | — | Usada lunes y miércoles |
 | Chai en polvo | — | 🟢 | — | |
 | Chia seeds | — | 🟢 | — | |
 | Mezcla de pancakes | — | 🟡 | — | Usada en pancake martes |
