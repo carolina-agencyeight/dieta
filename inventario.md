@@ -11,7 +11,7 @@
 | Ahuyama | — | 🟡 | — | |
 | Arándanos | — | 🟢 | — | |
 | Capón | 2-3 uds | 🔴 | — | Usado 1-2 en bistec lunes |
-| Carne molida | 2 bolsas | 🟡 | — | |
+| Carne molida | 1 bolsa | 🔴 | — | |
 | Cáscaras de piña | — | 🟢 | — | |
 | Costilla de cerdo | — | 🟢 | — | |
 | Guatila | — | 🟢 | — | |
@@ -38,7 +38,7 @@
 | Artículo | Cantidad | Estado | Vence | Nota |
 |----------|----------|--------|-------|------|
 | Aderezos | — | 🟢 | — | Variados |
-| Bananos | 2 uds | 🟡 | 2026-03-01 | 1 comido media mañana miércoles |
+| Bananos | 1 ud | 🔴 | 2026-03-01 | ½ almuerzo + ½ merienda miércoles |
 | Cerveza | — | 🟢 | — | |
 | Chorizitos | — | 🟢 | 2026-03-07 | |
 | Cilantro | — | 🟡 | 2026-03-04 | |
@@ -102,7 +102,7 @@
 | Hojas de laurel | — | 🟢 | — | |
 | Italian seasoning | — | 🟢 | — | |
 | Jengibre en polvo | — | 🟢 | — | |
-| Lentejas | — | 🟢 | — | |
+| Lentejas | — | 🟡 | — | |
 | Maggi | — | 🟢 | — | |
 | Maizena | — | 🟢 | — | |
 | Maíz peto | — | 🟢 | — | |

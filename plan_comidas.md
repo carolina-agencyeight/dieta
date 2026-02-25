@@ -127,16 +127,16 @@
 - [x] Bananos 🟢→🟡 (quedan 2)
 
 #### Almuerzo
-**Lentejas con carne molida**
-- [ ] Lentejas 🟢→🟡
-- [ ] Carne molida 🟡→🔴
-- [ ] Ajo 🟢→🟢
-- [ ] Aceite de oliva 🟢→🟢
+**Lentejas con carne molida de cerdo**
+- [x] Lentejas 🟢→🟡
+- [x] Carne molida 🟡→🔴
+- [x] Ajo 🟢→🟢
+- [x] Aceite de oliva 🟢→🟢
+- [x] Bananos 🟡→🔴 (½ ud)
 
 #### Merienda
-**Taza de chai**
-- [ ] Chai en polvo 🟢→🟡
-- [ ] Leche 🟡→🔴
+**Medio banano**
+- [ ] Bananos 🔴→🔴 (½ ud restante)
 
 #### Cena
 **Sándwich de atún con aderezos**
