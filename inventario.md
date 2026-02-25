@@ -38,7 +38,7 @@
 | Artículo | Cantidad | Estado | Vence | Nota |
 |----------|----------|--------|-------|------|
 | Aderezos | — | 🟢 | — | Variados |
-| Bananos | 1 ud | 🔴 | 2026-03-01 | |
+| Bananos | 2 uds | 🟡 | 2026-03-01 | |
 | Cerveza | — | 🟢 | — | |
 | Chorizitos | — | 🟢 | 2026-03-07 | |
 | Cilantro | — | 🟡 | 2026-03-04 | |
