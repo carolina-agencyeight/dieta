@@ -1485,34 +1485,56 @@ function useBulkItem(item) {
 // Strip quantities/units from an ingredient string to get just the item name
 function stripIngQuantity(raw) {
   let s = raw.toLowerCase().trim();
-  // Remove leading fractions/numbers + units
   s = s.replace(/^\d[\d/.,\s]*(cups?|tbsp?|tsp?|tablespoons?|teaspoons?|oz\.?|g|kg|ml|l\b|lbs?|lb|pounds?|pinch(es)?|squeeze|handful|bunch|cloves?|slices?|pieces?|cans?|jars?|stalks?)\s*(of\s+)?/i, '');
   s = s.replace(/^(a\s+)?(pinch|squeeze|handful|bunch|slice|piece|can|jar|stalk)\s+(of\s+)?/i, '');
-  s = s.replace(/^\d+\s+/, '');
-  // Remove trailing descriptors in parens
+  s = s.replace(/^\d+[\d/.,]?\s+/, '');
   s = s.replace(/\(.*?\)/g, '');
-  // Remove common adjectives: fresh, dried, chopped, minced, sliced, diced, etc.
-  s = s.replace(/\b(fresh|dried|frozen|chopped|minced|sliced|diced|grated|ground|whole|raw|cooked|peeled|pitted|rinsed|drained|softened|melted|room temperature|to taste|optional)\b/gi, '');
-  // Remove leading/trailing punctuation and extra spaces
+  s = s.replace(/\b(fresh|dried|frozen|chopped|minced|sliced|diced|grated|ground|whole|raw|cooked|peeled|pitted|rinsed|drained|softened|melted|room\s+temperature|to\s+taste|optional)\b/gi, '');
+  // Take only first option when ingredient lists alternatives: "ron blanco o claro" → "ron blanco"
+  s = s.replace(/\s+o\s+.+$/, '');
   s = s.replace(/^[,;\s]+|[,;\s]+$/g, '').replace(/\s{2,}/g, ' ').trim();
-  return s || raw.trim();
+  return s || raw.toLowerCase().trim();
 }
 
+// Returns best inventory match for an ingredient name, or null if no confident match.
+// Returns the highest-scoring item; requires score ≥ 30 to count.
 function findInvMatch(ingName) {
   const ing = stripIngQuantity(ingName);
   if (!ing || ing.length < 2) return null;
-  return S.inv.find(item => {
+
+  let best = null, bestScore = 0;
+
+  for (const item of S.inv) {
     const nm = item.n.toLowerCase().trim();
-    if (nm.length < 2) return false;
-    if (nm === ing) return true;
-    if (nm.includes(ing) && ing.length >= 4) return true;
-    if (ing.includes(nm) && nm.length >= 4) return true;
-    // Word-level match: at least one meaningful word (≥4 chars) in common
-    const ingWords = ing.split(/\s+/).filter(w => w.length >= 4);
-    const nmWords  = nm.split(/\s+/).filter(w => w.length >= 4);
-    return ingWords.length > 0 && nmWords.length > 0 &&
-      ingWords.some(w => nmWords.some(n => n.includes(w) || w.includes(n)));
-  });
+    if (!nm || nm.length < 2) continue;
+
+    let score = 0;
+    if (nm === ing) {
+      score = 100; // exact
+    } else if (ing.length >= 4 && nm.startsWith(ing)) {
+      // Inventory item starts with ingredient name (e.g. "piña" → "piña natural")
+      // Penalise if the suffix is " de X" (different product entirely: leche ≠ leche de avena)
+      const suffix = nm.slice(ing.length);
+      score = /^\s+de\s/.test(suffix) ? 20 : 80;
+    } else if (nm.length >= 4 && ing.startsWith(nm)) {
+      // Ingredient starts with inventory name (e.g. "piña fresca" recipe → "piña" in inventory)
+      const suffix = ing.slice(nm.length);
+      score = /^\s+de\s/.test(suffix) ? 20 : 60;
+    } else {
+      // Word-level: ALL significant words (≥5 chars) of the SHORTER side must appear in the longer
+      const ingW = ing.split(/[\s,\/]+/).filter(w => w.length >= 5);
+      const nmW  = nm.split(/[\s,\/]+/).filter(w => w.length >= 5);
+      if (ingW.length >= 1 && nmW.length >= 1) {
+        const [shorter, longer] = ingW.length <= nmW.length ? [ingW, nmW] : [nmW, ingW];
+        const matched = shorter.filter(sw => longer.some(lw => lw === sw)).length;
+        if (matched === shorter.length) score = 30; // all words of shorter side found
+      }
+    }
+
+    if (score > bestScore) { bestScore = score; best = item; }
+  }
+
+  return bestScore >= 30 ? best : null;
 }
 
 function checkMealIngredients(meal) {
@@ -1684,6 +1706,7 @@ function renderMercado() {
     <button class="btn btn-blue" onclick="renderMercado()">🔄 Actualizar</button>
     <button class="btn" onclick="clearShopChk()">Desmarcar todo</button>
     <button class="btn btn-green" onclick="openExportModal()">📤 Exportar lista</button>
+    <button class="btn" onclick="openPlanShoppingList()">📅 Del plan esta semana</button>
   </div>
   <div class="shop-sect">
     <h2>🔴 Urgente — Bajo o agotado (${urgent.length})</h2>
@@ -1714,6 +1737,75 @@ function toggleShopChk(key, itemId) {
 }
 
 function clearShopChk() { S.shopChk = {}; save(); renderMercado(); }
+
+function openPlanShoppingList() {
+  const week = S.plans[S.curWeek] || {};
+  const allRecs = getAllRecipes();
+  const missing = {}, low = {};
+
+  Object.values(week).forEach(dayMeals => {
+    if (!dayMeals) return;
+    Object.values(dayMeals).forEach(meal => {
+      if (!meal?.recipeId) return;
+      const rec = allRecs.find(r => r.id === meal.recipeId);
+      if (!rec) return;
+      (rec.ing||[]).forEach(ing => {
+        const item = findInvMatch(ing);
+        if (!item) {
+          const key = ing.toLowerCase().trim();
+          if (!missing[key]) missing[key] = ing;
+        } else if (item.s === 'r') {
+          if (!low[item.id]) low[item.id] = item;
+        }
+      });
+    });
+  });
+
+  const missingList = Object.values(missing);
+  const lowList = Object.values(low);
+
+  if (!missingList.length && !lowList.length) {
+    openModal(`<h2>📅 Lista del plan esta semana</h2>
+      <p style="color:var(--green);margin:16px 0">✅ ¡Todo lo necesario está en tu inventario!</p>
+      <div class="modal-footer"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
+    return;
+  }
+
+  const weekLabel = S.curWeek ? new Date(S.curWeek+'T00:00:00').toLocaleDateString('es', {day:'numeric',month:'short'}) : '';
+
+  openModal(`<h2>📅 Compras del plan — semana del ${weekLabel}</h2>
+    ${missingList.length ? `
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px">✕ No en inventario (${missingList.length})</div>
+      ${missingList.map(i=>`<div style="padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">${esc(i)}</div>`).join('')}
+    </div>` : ''}
+    ${lowList.length ? `
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:6px">🔴 Bajo en inventario (${lowList.length})</div>
+      ${lowList.map(i=>`<div style="padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">${esc(i.n)}${i.q&&i.q!=='—'?` <span style="color:var(--dim);font-size:11px">(${esc(i.q)})</span>`:''}</div>`).join('')}
+    </div>` : ''}
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cerrar</button>
+      <button class="btn btn-blue" onclick="copyPlanShoppingList()">📋 Copiar lista</button>
+    </div>`);
+
+  // Store for copy
+  window._planShopMissing = missingList;
+  window._planShopLow = lowList;
+}
+
+function copyPlanShoppingList() {
+  const lines = [];
+  if (window._planShopMissing?.length) {
+    lines.push('✕ Falta comprar:');
+    window._planShopMissing.forEach(i => lines.push('  ' + i));
+  }
+  if (window._planShopLow?.length) {
+    lines.push('🔴 Reabastecer:');
+    window._planShopLow.forEach(i => lines.push('  ' + i.n));
+  }
+  navigator.clipboard?.writeText(lines.join('\n')).then(() => showToast('✅ Lista copiada'));
+}
 
 // ─── EXPORT ─────────────────────────────────
 function buildShoppingText() {
@@ -1843,12 +1935,22 @@ async function exportShare() {
   } catch(e) { /* cancelled */ }
 }
 
-function showToast(msg) {
+function showToast(msg, undoFn) {
+  document.querySelectorAll('.toast-el').forEach(el => el.remove());
   const t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;padding:9px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:400;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.4)';
-  t.textContent = msg;
+  t.className = 'toast-el';
+  t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);color:var(--text);padding:9px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:400;box-shadow:0 4px 16px rgba(0,0,0,.5);display:flex;align-items:center;gap:10px;white-space:nowrap';
+  t.innerHTML = `<span>${msg}</span>`;
+  if (undoFn) {
+    const btn = document.createElement('button');
+    btn.textContent = 'Deshacer';
+    btn.style.cssText = 'background:var(--blue);border:none;border-radius:10px;color:#000;font-size:12px;font-weight:700;padding:3px 10px;cursor:pointer';
+    btn.onclick = () => { undoFn(); t.remove(); };
+    t.appendChild(btn);
+  }
   document.body.appendChild(t);
-  setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 2200);
+  const timer = setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, undoFn ? 4000 : 2200);
+  if (undoFn) t.querySelector('button').addEventListener('click', () => clearTimeout(timer));
 }
 
 // ─────────────────────────────────────────────
@@ -1879,6 +1981,7 @@ function renderRecetas() {
     <button class="btn" onclick="openSuggestFromInventory()">🔍 Del inventario</button>
     <button class="btn" onclick="openBlogImporter()">🌐 Blog</button>
     <button class="btn" onclick="openExportRecipes()">📤 Exportar</button>
+    ${Object.values(S.hiddenRecipes||{}).some(Boolean) ? `<button class="btn" style="color:var(--dim)" onclick="openHiddenRecipes()">🙈 Ocultas (${Object.values(S.hiddenRecipes||{}).filter(Boolean).length})</button>` : ''}
   </div>
   <div id="recetas-grid" class="recipes-grid"></div>`;
 
@@ -1961,7 +2064,7 @@ function renderRecetasGrid() {
           const dot = inv ? (inv.s==='g'?'<span style="color:var(--green);font-size:10px">🟢</span>':inv.s==='y'?'<span style="color:var(--yellow);font-size:10px">🟡</span>':'<span style="color:var(--red);font-size:10px">🔴</span>') : '<span style="color:var(--dim);font-size:10px">✕</span>';
           return `<li style="display:flex;gap:5px;align-items:baseline">${dot}<span>${esc(i)}</span></li>`;
         }).join('')}</ul>
-        ${(rec.qty||[]).length ? `<div style="font-size:11px;color:var(--dim);margin-top:4px;margin-bottom:10px"><em>Cantidades: ${esc(rec.qty.join(', '))}</em></div>` : ''}
+        ${(rec.qty||[]).length ? `<details style="margin:4px 0 10px;font-size:12px"><summary style="cursor:pointer;color:var(--dim);list-style:none;display:flex;align-items:center;gap:5px"><span style="font-size:10px">▶</span> Ver cantidades (${rec.qty.length})</summary><ul style="margin-top:6px;padding-left:16px">${rec.qty.map(q=>`<li style="color:var(--dim)">${esc(q)}</li>`).join('')}</ul></details>` : ''}
         <h4>Preparación</h4>
         <ol>${(rec.steps||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
         ${rec.note ? `<div class="note">⚠️ ${esc(rec.note)}</div>` : ''}
@@ -1984,11 +2087,44 @@ function toggleRec(id) {
 }
 
 function hideRecipe(id) {
-  if (!confirm('¿Ocultar esta receta del recetario? Puedes restaurarla desde Ajustes.')) return;
   if (!S.hiddenRecipes) S.hiddenRecipes = {};
   S.hiddenRecipes[id] = true;
   save(); renderRecetasGrid();
-  showToast('Receta ocultada');
+  showToast('Receta ocultada', () => {
+    delete S.hiddenRecipes[id];
+    save(); renderRecetasGrid();
+  });
+}
+
+function openHiddenRecipes() {
+  const hidden = S.hiddenRecipes || {};
+  const hiddenIds = Object.keys(hidden).filter(id => hidden[id]);
+  if (!hiddenIds.length) { showToast('No hay recetas ocultas'); return; }
+  const all = getAllRecipes();
+  const cards = hiddenIds.map(id => {
+    const rec = all.find(r => r.id === id);
+    if (!rec) return '';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px">
+      <div>
+        <div style="font-size:13px;font-weight:600">${esc(rec.name)}</div>
+        <div style="font-size:11px;color:var(--dim)">${recCats(rec).map(c=>CAT_LABELS[c]).join(', ')}</div>
+      </div>
+      <button class="btn btn-blue" style="font-size:11px;padding:4px 10px" onclick="restoreRecipe('${id}')">Restaurar</button>
+    </div>`;
+  }).join('');
+  openModal(`<h2>Recetas ocultas (${hiddenIds.length})</h2>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">${cards}</div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
+}
+
+function restoreRecipe(id) {
+  if (S.hiddenRecipes) delete S.hiddenRecipes[id];
+  save(); renderRecetasGrid();
+  showToast('Receta restaurada');
+  // Refresh the modal count
+  const remaining = Object.keys(S.hiddenRecipes||{}).filter(k => S.hiddenRecipes[k]);
+  if (!remaining.length) closeModal();
+  else openHiddenRecipes();
 }
 
 // ─────────────────────────────────────────────
@@ -3055,11 +3191,12 @@ function disconnectSync() {
 loadSyncCfg();
 load();
 if (!S.curWeek) S.curWeek = getMonday(new Date());
+// Use TAB() so the correct panel gets .on class and is visible on first load
 if (_syncCfg) {
   setSyncStatus('syncing', '☁️ Sincronizando…');
-  pullFromGist(true).then(() => render());
+  pullFromGist(true).then(() => TAB(S.tab || 'inventario'));
 } else {
-  render();
+  TAB(S.tab || 'inventario');
 }
 
 // Auto-pull when the user returns to this tab/window
@@ -3068,7 +3205,7 @@ function maybePull() {
   if (!_syncCfg) return;
   if (Date.now() - _lastPull < 10000) return; // no más de una vez cada 10s
   _lastPull = Date.now();
-  pullFromGist(true).then(ok => { if (ok) render(); });
+  pullFromGist(true).then(ok => { if (ok) TAB(S.tab || 'inventario'); });
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) maybePull(); });
 window.addEventListener('focus', maybePull);
