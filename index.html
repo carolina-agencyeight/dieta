@@ -61,6 +61,9 @@ main { padding: 20px; max-width: 1100px; margin: 0 auto; }
 .inv-body { overflow-x: auto; }
 table.inv { width: 100%; border-collapse: collapse; }
 table.inv th { text-align: left; padding: 7px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); border-bottom: 1px solid var(--border); white-space: nowrap; }
+table.inv th[onclick] { cursor: pointer; user-select: none; }
+table.inv th[onclick]:hover { color: var(--text); }
+table.inv th.sort-active { color: var(--blue); }
 table.inv td { padding: 5px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 /* Sticky first column */
 table.inv th:first-child { position: sticky; left: 0; z-index: 2; background: var(--surface2); box-shadow: 2px 0 6px rgba(0,0,0,.35); }
@@ -547,6 +550,39 @@ function render() {
 // ─────────────────────────────────────────────
 // INVENTORY
 // ─────────────────────────────────────────────
+function thSort(label, key) {
+  const active = S.invSort?.key === key;
+  const arrow = active ? (S.invSort.dir === 1 ? ' ▲' : ' ▼') : '';
+  return `<th class="${active?'sort-active':''}" onclick="setSort('${key}')">${label}${arrow}</th>`;
+}
+
+function setSort(key) {
+  if (!S.invSort) S.invSort = { key, dir: 1 };
+  else if (S.invSort.key === key) S.invSort.dir *= -1;
+  else { S.invSort.key = key; S.invSort.dir = 1; }
+  renderInventory();
+}
+
+function sortItems(items) {
+  if (!S.invSort) return items;
+  const { key, dir } = S.invSort;
+  const statusOrder = { g: 0, y: 1, r: 2 };
+  return [...items].sort((a, b) => {
+    let av, bv;
+    if (key === 'e') {
+      av = a.e ? new Date(a.e).getTime() : Infinity;
+      bv = b.e ? new Date(b.e).getTime() : Infinity;
+    } else if (key === 's') {
+      av = statusOrder[a.s] ?? 0;
+      bv = statusOrder[b.s] ?? 0;
+    } else {
+      av = (a[key] || '').toLowerCase();
+      bv = (b[key] || '').toLowerCase();
+    }
+    return av < bv ? -dir : av > bv ? dir : 0;
+  });
+}
+
 function renderInventory() {
   const el = document.getElementById('p-inventario');
   const now = new Date(); now.setHours(0,0,0,0);
@@ -604,10 +640,10 @@ function renderInventory() {
     if (!collapsed) {
       html += `<div class="inv-body"><table class="inv">
         <thead><tr>
-          <th>Artículo</th><th>Cantidad</th><th>Estado</th><th>Vence</th><th>Nota</th><th></th>
+          ${thSort('Artículo','n')}${thSort('Cantidad','q')}${thSort('Estado','s')}${thSort('Vence','e')}${thSort('Nota','t')}<th></th>
         </tr></thead><tbody>`;
 
-      for (const item of items) {
+      for (const item of sortItems(items)) {
         const ei = expiryInfo(item);
         let rowCls = '';
         if (ei && ei.cls === 'exp-past') rowCls = 'row-exp-past';
