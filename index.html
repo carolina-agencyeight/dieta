@@ -666,6 +666,7 @@ let S = {
   invSort: null,
   invLastUpdated: null,
   customRecipes: [],
+  recipeEdits: {},   // { recipeId: { name?, time?, ing?, steps?, note?, cats? } }
   bulkUses: {},      // { itemId: useCount } for slow-deduction bulk items
 };
 
@@ -689,6 +690,17 @@ function load() {
 // ─────────────────────────────────────────────
 function uid() { return '_' + Math.random().toString(36).slice(2,9); }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Returns all recipes with edits applied; custom recipes included last
+function getAllRecipes() {
+  const base = [...RECIPES, ...PLAN_RECIPES];
+  return [
+    ...base.map(r => { const e = (S.recipeEdits||{})[r.id]; return e ? {...r, ...e} : r; }),
+    ...(S.customRecipes||[])
+  ];
+}
+// Returns effective categories for a recipe (supports multi-cat)
+function recCats(r) { return r.cats && r.cats.length ? r.cats : [r.cat]; }
 
 function getMonday(d) {
   const dt = new Date(d);
@@ -1115,7 +1127,7 @@ function openMealEdit(mon, di, mk) {
   const plan = getWeekPlan(mon);
   const day = plan[di];
   const meal = day.meals[mk];
-  const recs = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].filter(r => r.cat === mk);
+  const recs = getAllRecipes().filter(r => r.cat === mk);
   const chk = meal ? checkMealIngredients(meal) : null;
 
   let recOpts = `<option value="">— Sin comida —</option>`;
@@ -1167,7 +1179,7 @@ function openMealEdit(mon, di, mk) {
 function prefillMealName() {
   const rid = document.getElementById('me-rid').value;
   if (!rid) return;
-  const rec = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].find(r => r.id===rid);
+  const rec = getAllRecipes().find(r => r.id===rid);
   if (rec) {
     document.getElementById('me-name').value = rec.name;
     if (document.getElementById('me-notes') && !document.getElementById('me-notes').value) {
@@ -1441,7 +1453,7 @@ function findInvMatch(ingName) {
 
 function checkMealIngredients(meal) {
   if (!meal?.recipeId) return null;
-  const rec = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].find(r => r.id === meal.recipeId);
+  const rec = getAllRecipes().find(r => r.id === meal.recipeId);
   if (!rec) return null;
   const missing = [], low = [], ok = [];
   rec.ing.forEach(ing => {
@@ -1489,7 +1501,7 @@ function generatePlan() {
   }
 
   function best(cat) {
-    const pool = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].filter(r => r.cat === cat);
+    const pool = getAllRecipes().filter(r => recCats(r).includes(cat));
     const scored = pool.map(r => ({...r, score: scoreRecipe(r)})).sort((a,b) => b.score-a.score);
     const good = scored.filter(r => r.score > 4);
     return good.length ? good : scored; // fallback to all if none score high enough
@@ -1650,27 +1662,26 @@ function buildShoppingText() {
   }).sort((a,b)=>new Date(a.e)-new Date(b.e));
   const optional = S.inv.filter(i => i.s==='y' && !expiring.find(x=>x.id===i.id));
   const date = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
-  // Use - [ ] format → renders as interactive checkboxes in iPhone Notes
   let t = `🛒 Lista de Mercado — ${date}\n`;
   if (urgent.length) {
     t += `\n🔴 URGENTE\n`;
     urgent.forEach(i => {
       const detail = [i.q&&i.q!=='—'?i.q:'', i.t].filter(Boolean).join(' · ');
-      t += `- [ ] ${i.n}${detail?' ('+detail+')':''}\n`;
+      t += `${i.n}${detail?' ('+detail+')':''}\n`;
     });
   }
   if (expiring.length) {
     t += `\n⚠️ POR VENCER\n`;
     expiring.forEach(i => {
       const detail = [i.q&&i.q!=='—'?i.q:'', i.t, `vence ${i.e}`].filter(Boolean).join(' · ');
-      t += `- [ ] ${i.n} (${detail})\n`;
+      t += `${i.n} (${detail})\n`;
     });
   }
   if (optional.length) {
     t += `\n🟡 OPCIONALES\n`;
     optional.forEach(i => {
       const detail = [i.q&&i.q!=='—'?i.q:'', i.t].filter(Boolean).join(' · ');
-      t += `- [ ] ${i.n}${detail?' ('+detail+')':''}\n`;
+      t += `${i.n}${detail?' ('+detail+')':''}\n`;
     });
   }
   return t.trim();
@@ -1694,14 +1705,11 @@ function buildShoppingCSV() {
 function openExportModal() {
   const hasShare = !!navigator.share;
   openModal(`<h2>📤 Exportar lista de mercado</h2>
-    <div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);border-radius:6px;padding:9px 12px;font-size:11px;color:var(--blue);margin-bottom:14px;line-height:1.5">
-      💡 <strong>iPhone Notes:</strong> Para activar los checks interactivos, pega el texto en Notas y luego toca <strong>Aa → Lista de verificación</strong>. Las líneas con <code>- [ ]</code> se convierten automáticamente.
-    </div>
     <div class="export-grid">
       <button class="export-opt" onclick="exportText()">
         <div class="export-icon">📋</div>
         <div class="export-lbl">Texto / Notas</div>
-        <div class="export-desc">Formato - [ ] para iPhone Notes</div>
+        <div class="export-desc">Un artículo por línea, listo para copiar</div>
       </button>
       <button class="export-opt" onclick="exportCSV()">
         <div class="export-icon">📊</div>
@@ -1802,20 +1810,28 @@ function renderRecetas() {
   </div>
   <div class="recipes-grid">`;
 
-  const allRecipes = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])];
-  const filtered = allRecipes.filter(r => r.cat === S.recCat);
+  const allRecipes = getAllRecipes();
+  const filtered = allRecipes.filter(r => recCats(r).includes(S.recCat));
   filtered.forEach(rec => {
     const isOpen = S.recOpen && S.recOpen[rec.id];
     const isCustom = !!(S.customRecipes||[]).find(r => r.id === rec.id);
-    const srcBadge = isCustom && rec.source ? `<span class="src-badge">${rec.source==='foto'?'📷 Foto':rec.source==='link'?'🔗 Link':'✏️ Texto'}</span>` : '';
+    const hasEdits = !!(S.recipeEdits||{})[rec.id];
+    const srcBadge = isCustom && rec.source ? `<span class="src-badge">${rec.source==='foto'?'📷 Foto':rec.source==='link'?'🔗 Link':rec.source==='plan'?'📅 Plan':'✏️ Texto'}</span>` : (rec.source==='plan'?'<span class="src-badge">📅 Plan</span>':'');
+    const editBadge = hasEdits ? '<span class="src-badge" style="background:rgba(63,185,80,.15);color:var(--green)">✏️ editada</span>' : '';
+    // Extra categories badge
+    const extraCats = recCats(rec).filter(c => c !== S.recCat);
+    const catBadges = extraCats.map(c => `<span class="src-badge" style="background:rgba(88,166,255,.12);color:var(--blue)">${CAT_LABELS[c]||c}</span>`).join('');
     html += `<div class="rcard">
       <div class="rcard-hdr" onclick="toggleRec('${rec.id}')">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
           <div>
-            <h3>${esc(rec.name)}${srcBadge}</h3>
+            <h3>${esc(rec.name)}${srcBadge}${editBadge}${catBadges}</h3>
             <div class="rcard-meta">⏱ ${esc(rec.time||'—')} · 🍽 ${rec.srv||1} porción${(rec.srv||1)>1?'es':''}</div>
           </div>
-          ${isCustom ? `<button class="btn btn-red" style="padding:2px 7px;font-size:11px;flex-shrink:0;margin-top:1px" onclick="event.stopPropagation();deleteCustomRecipe('${rec.id}')">✕</button>` : ''}
+          <div style="display:flex;gap:4px;flex-shrink:0;margin-top:1px">
+            <button class="btn" style="padding:2px 7px;font-size:11px" onclick="event.stopPropagation();openEditRecipe('${rec.id}')">✏️</button>
+            ${isCustom ? `<button class="btn btn-red" style="padding:2px 7px;font-size:11px" onclick="event.stopPropagation();deleteCustomRecipe('${rec.id}')">✕</button>` : (hasEdits ? `<button class="btn btn-red" style="padding:2px 7px;font-size:11px" onclick="event.stopPropagation();resetRecipeEdits('${rec.id}')">↩️</button>` : '')}
+          </div>
         </div>
       </div>
       <div class="rcard-body ${isOpen?'on':''}">
@@ -1997,46 +2013,93 @@ async function fetchAndParseLink() {
     return;
   }
   if (statusEl) statusEl.innerHTML = '<span style="color:var(--yellow)">⏳ Obteniendo página…</span>';
-  try {
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const html = await res.text();
-    // Strip tags and try to parse as recipe text
+
+  // Try multiple CORS proxies in order
+  const proxies = [
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+
+  let html = null;
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const data = await res.text();
+      // allorigins wraps in JSON: { "contents": "<html>..." }
+      if (proxy.includes('allorigins')) {
+        try { html = JSON.parse(data).contents; } catch { html = data; }
+      } else {
+        html = data;
+      }
+      if (html && html.includes('<')) break;
+    } catch(e) { continue; }
+  }
+
+  if (!html) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">❌ No se pudo acceder a la página. Copia el texto de la receta en la pestaña ✏️ Texto.</span>';
+    return;
+  }
+
+  // ── 1. Try JSON-LD structured data (most recipe blogs use this) ──────────
+  let filled = false;
+  const ldMatches = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const m of ldMatches) {
+    try {
+      let data = JSON.parse(m[1]);
+      // Unwrap @graph arrays
+      if (data['@graph']) data = data['@graph'].find(x => [].concat(x['@type']||[]).includes('Recipe')) || {};
+      if ([].concat(data['@type']||[]).includes('Recipe')) {
+        const nameEl   = document.getElementById('rec-name');
+        const ingEl    = document.getElementById('rec-ing');
+        const stepsEl  = document.getElementById('rec-steps');
+        const timeEl   = document.getElementById('rec-time');
+        const srvEl    = document.getElementById('rec-srv');
+        const noteEl   = document.getElementById('rec-note');
+        if (nameEl  && data.name)              nameEl.value  = data.name;
+        if (ingEl   && data.recipeIngredient)  ingEl.value   = data.recipeIngredient.join('\n');
+        if (stepsEl && data.recipeInstructions) {
+          const steps = [].concat(data.recipeInstructions).map(s =>
+            typeof s === 'string' ? s : s.text || s.name || (s.itemListElement||[]).map(x=>x.text||'').join(' ') || ''
+          ).filter(Boolean);
+          stepsEl.value = steps.join('\n');
+        }
+        if (timeEl) {
+          const t = data.totalTime || data.cookTime || data.prepTime || '';
+          // Convert ISO 8601 duration PT1H30M → "1 h 30 min"
+          const iso = t.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+          if (iso) timeEl.value = [iso[1]?iso[1]+' h':'', iso[2]?iso[2]+' min':''].filter(Boolean).join(' ');
+          else if (t) timeEl.value = t;
+        }
+        if (srvEl && data.recipeYield) srvEl.value = parseInt([].concat(data.recipeYield)[0]) || 1;
+        if (noteEl && data.description && !noteEl.value) noteEl.value = data.description.slice(0,120);
+        filled = true;
+        break;
+      }
+    } catch(e) { continue; }
+  }
+
+  // ── 2. Fallback: strip HTML and run text parser ──────────────────────────
+  if (!filled) {
     const div = document.createElement('div');
     div.innerHTML = html;
-    // Remove scripts/styles
-    div.querySelectorAll('script,style,nav,header,footer,aside').forEach(el => el.remove());
-    const text = div.innerText || div.textContent || '';
-    // Reuse the text parser
-    const saved = document.getElementById('rec-rawtext');
-    if (saved) { saved.value = text.slice(0, 4000); parseAndFill(); }
-    else {
-      // Direct parse without textarea
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      let name = '', ings = [], steps = [], mode = 'header';
-      for (const line of lines) {
-        const ll = line.toLowerCase();
-        if (/^ingredientes?:?\s*$/.test(ll)) { mode='ing'; continue; }
-        if (/^(preparaci[oó]n|instrucciones?|pasos?|m[eé]todo|elaboraci[oó]n):?\s*$/.test(ll)) { mode='steps'; continue; }
-        if (mode==='header' && !name) { name = line.replace(/^#+\s*/,''); continue; }
-        const clean = line.replace(/^[-•*]\s*/,'').replace(/^\d+[.)]\s*/,'').trim();
-        if (!clean) continue;
-        if (mode==='ing') ings.push(clean);
-        else if (mode==='steps') steps.push(clean);
-      }
-      if (name) document.getElementById('rec-name').value = name;
-      if (ings.length) document.getElementById('rec-ing').value = ings.join('\n');
-      if (steps.length) document.getElementById('rec-steps').value = steps.join('\n');
-    }
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--green)">✅ Página interpretada — revisa y ajusta los campos.</span>';
-    // Pre-fill name from page title if not found
-    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    const nameEl = document.getElementById('rec-name');
-    if (nameEl && !nameEl.value && titleMatch) nameEl.value = titleMatch[1].trim().split('|')[0].trim();
-  } catch(e) {
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">❌ No se pudo obtener la página (CORS). Copia el texto manualmente en la pestaña ✏️ Texto.</span>';
+    div.querySelectorAll('script,style,nav,header,footer,aside,iframe').forEach(el => el.remove());
+    const text = (div.innerText || div.textContent || '').replace(/\n{3,}/g,'\n\n');
+    // Put into the rawtext area and reuse the text parser
+    const rtEl = document.getElementById('rec-rawtext');
+    if (rtEl) { rtEl.value = text.slice(0, 5000); parseAndFill(); }
   }
+
+  // Title fallback for name
+  const nameEl2 = document.getElementById('rec-name');
+  if (nameEl2 && !nameEl2.value) {
+    const t = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (t) nameEl2.value = t[1].trim().split(/[|\-–]/)[0].trim();
+  }
+
+  const method = filled ? 'JSON-LD ✓' : 'texto HTML';
+  if (statusEl) statusEl.innerHTML = `<span style="color:var(--green)">✅ Receta importada (${method}) — revisa y ajusta los campos.</span>`;
 }
 
 function confirmAddRecipe() {
@@ -2076,9 +2139,90 @@ function deleteCustomRecipe(id) {
   renderRecetas();
 }
 
+// ─── EDIT RECIPE ─────────────────────────────
+function openEditRecipe(id) {
+  const rec = getAllRecipes().find(r => r.id === id);
+  if (!rec) return;
+  const currentCats = recCats(rec);
+  const cats = ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
+  const catCheckboxes = cats.map(c => `
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:3px 0">
+      <input type="checkbox" id="ec-cat-${c}" ${currentCats.includes(c)?'checked':''} style="accent-color:var(--blue)">
+      ${CAT_LABELS[c]}
+    </label>`).join('');
+
+  openModal(`<h2>✏️ Editar: ${esc(rec.name)}</h2>
+    <div class="fg"><label>Nombre del plato</label>
+      <input id="ec-name" type="text" value="${esc(rec.name)}">
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Tiempo total</label><input id="ec-time" type="text" value="${esc(rec.time||'—')}"></div>
+      <div class="fg"><label>Porciones</label><input id="ec-srv" type="number" min="1" value="${rec.srv||1}"></div>
+    </div>
+    <div class="fg"><label>Categorías (puede seleccionar varias)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:8px 10px">
+        ${catCheckboxes}
+      </div>
+    </div>
+    <div class="fg"><label>Ingredientes (uno por línea)</label>
+      <textarea id="ec-ing" style="min-height:100px">${esc((rec.ing||[]).join('\n'))}</textarea>
+    </div>
+    <div class="fg"><label>Preparación (un paso por línea)</label>
+      <textarea id="ec-steps" style="min-height:100px">${esc((rec.steps||[]).join('\n'))}</textarea>
+    </div>
+    <div class="fg"><label>Nota</label>
+      <input id="ec-note" type="text" value="${esc(rec.note||'')}">
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-blue" onclick="saveRecipeEdit('${id}')">Guardar cambios</button>
+    </div>`);
+}
+
+function saveRecipeEdit(id) {
+  const name = document.getElementById('ec-name')?.value.trim();
+  if (!name) { showToast('⚠️ Nombre requerido'); return; }
+  const time = document.getElementById('ec-time')?.value.trim() || '—';
+  const srv = parseInt(document.getElementById('ec-srv')?.value) || 1;
+  const ingsRaw = document.getElementById('ec-ing')?.value.trim() || '';
+  const stepsRaw = document.getElementById('ec-steps')?.value.trim() || '';
+  const note = document.getElementById('ec-note')?.value.trim() || '';
+  const cats = ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena']
+    .filter(c => document.getElementById('ec-cat-'+c)?.checked);
+
+  const edits = {
+    name, time, srv,
+    ing: ingsRaw ? ingsRaw.split('\n').map(l => l.trim()).filter(Boolean) : [],
+    steps: stepsRaw ? stepsRaw.split('\n').map(l => l.trim()).filter(Boolean) : [],
+    note,
+    cats: cats.length > 1 ? cats : [],
+    cat: cats[0] || 'almuerzo',
+  };
+
+  // Is it a custom recipe?
+  const customIdx = (S.customRecipes||[]).findIndex(r => r.id === id);
+  if (customIdx >= 0) {
+    S.customRecipes[customIdx] = { ...S.customRecipes[customIdx], ...edits };
+  } else {
+    // Base or plan recipe — store in recipeEdits
+    if (!S.recipeEdits) S.recipeEdits = {};
+    S.recipeEdits[id] = edits;
+  }
+
+  save(); closeModal(); renderRecetas();
+  showToast('✅ Receta actualizada');
+}
+
+function resetRecipeEdits(id) {
+  if (!confirm('¿Descartar todos los cambios de esta receta?')) return;
+  if (S.recipeEdits) delete S.recipeEdits[id];
+  save(); renderRecetas();
+  showToast('↩️ Cambios descartados');
+}
+
 // ─── EXPORT RECIPES ──────────────────────────
 function buildRecipeText(cat) {
-  const allRecs = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])];
+  const allRecs = getAllRecipes();
   const cats = cat ? [cat] : ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
   let t = `📖 Recetario${cat ? ' — '+CAT_LABELS[cat] : ''}\n${'─'.repeat(40)}\n`;
   for (const c of cats) {
@@ -2088,7 +2232,7 @@ function buildRecipeText(cat) {
     recs.forEach(rec => {
       t += `\n${rec.name}\n`;
       if (rec.time && rec.time !== '—') t += `⏱ ${rec.time}  🍽 ${rec.srv||1} porción\n`;
-      t += `\nIngredientes:\n${(rec.ing||[]).map(i=>`- [ ] ${i}`).join('\n')}\n`;
+      t += `\nIngredientes:\n${(rec.ing||[]).map(i=>`${i}`).join('\n')}\n`;
       if (rec.steps?.length) t += `\nPreparación:\n${rec.steps.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n`;
       if (rec.note) t += `\n⚠️ ${rec.note}\n`;
       t += '\n';
@@ -2137,7 +2281,7 @@ async function recExportText() {
 
 function recExportPDF() {
   const cat = document.getElementById('exp-rec-cat')?.value || '';
-  const allRecs = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])];
+  const allRecs = getAllRecipes();
   const cats = cat ? [cat] : ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
   let body = '';
   for (const c of cats) {
@@ -2185,7 +2329,7 @@ function openSuggestFromInventory() {
     const days = Math.round((d - now) / 86400000);
     return days >= 0 && days <= 7;
   });
-  const allRecs = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])];
+  const allRecs = getAllRecipes();
 
   // Score each recipe by how many available inventory items it uses
   const scored = allRecs.map(rec => {
@@ -2236,7 +2380,7 @@ function openSuggestFromInventory() {
 }
 
 function applyInventoryRecipe(recipeId) {
-  const rec = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].find(r => r.id === recipeId);
+  const rec = getAllRecipes().find(r => r.id === recipeId);
   if (!rec) return;
   closeModal();
   // Switch to plan tab and open the first empty slot for this category
@@ -2270,7 +2414,7 @@ function buildInvText() {
     items.forEach(i => {
       const s = i.s==='g'?'🟢':i.s==='y'?'🟡':'🔴';
       const detail = [i.q&&i.q!=='—'?i.q:'', i.e?`vence ${i.e}`:'', i.t].filter(Boolean).join(' · ');
-      t += `- [ ] ${s} ${i.n}${detail?' — '+detail:''}\n`;
+      t += `${s} ${i.n}${detail?' — '+detail:''}\n`;
     });
   }
   return t.trim();
