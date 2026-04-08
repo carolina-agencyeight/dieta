@@ -1563,6 +1563,27 @@ function disconnectSync() {
 loadSyncCfg();
 load();
 if (!S.curWeek) S.curWeek = getMonday(new Date());
+
+// Migración: borrar fecha de vencimiento de items 🔴 que ya vencieron
+(function migrateExpiredRed() {
+  if (S.migrations?.clearedExpiredRed) return;
+  const now = new Date(); now.setHours(0,0,0,0);
+  let changed = 0;
+  S.inv.forEach(item => {
+    if (item.s === 'r' && item.e) {
+      const d = new Date(item.e + 'T00:00:00');
+      if (d < now) { item.e = null; changed++; }
+    }
+  });
+  if (!S.migrations) S.migrations = {};
+  S.migrations.clearedExpiredRed = true;
+  if (changed) {
+    try { localStorage.setItem('cocina_v2', JSON.stringify(S)); } catch(e) {}
+    schedulePush();
+    console.log(`Migración: ${changed} fecha(s) borrada(s) de items 🔴 vencidos`);
+  }
+})();
+
 if (_syncCfg) {
   setSyncStatus('syncing', '☁️ Sincronizando…');
   pullFromGist(true).then(() => render());
