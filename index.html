@@ -113,6 +113,16 @@ table.plan td.slot-lbl { background: var(--surface2); font-size: 11px; font-weig
 .meal-ing { font-size: 10px; color: var(--dim); margin-top: 2px; }
 .meal-cell.gen { background: rgba(88,166,255,.07); }
 .meal-cell.uses-exp { background: rgba(219,109,40,.1); }
+.meal-cell.issues { background: rgba(248,81,73,.13); border: 1px solid rgba(248,81,73,.22); }
+.meal-cell.prepared { opacity: .5; }
+.meal-cell.prepared .meal-nm { text-decoration: line-through; }
+.meal-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; min-height: 18px; }
+.meal-issues-badge { font-size: 10px; color: var(--red); }
+.prep-btn { background: rgba(63,185,80,.15); border: 1px solid rgba(63,185,80,.35); border-radius: 3px; color: var(--green); cursor: pointer; font-size: 10px; font-weight: 700; line-height: 1.4; padding: 1px 6px; white-space: nowrap; }
+.prep-btn:hover { background: rgba(63,185,80,.3); }
+.ing-list { list-style: none; font-size: 12px; padding: 0; }
+.ing-list li { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.04); display: flex; align-items: center; gap: 7px; }
+.ing-list li:last-child { border-bottom: none; }
 .day-th.done { color: var(--green); text-decoration: line-through; }
 
 /* SHOPPING */
@@ -837,8 +847,9 @@ function renderPlan() {
     <button class="btn" onclick="goToday()">Hoy</button>
     <button class="btn btn-green" onclick="generatePlan()">✨ Generar semana</button>
     <button class="btn" onclick="clearPlan()">Limpiar</button>
+    <button class="btn" onclick="openExportPlan()">📤 Exportar plan</button>
   </div>
-  <p style="color:var(--dim);font-size:12px;margin-bottom:14px">Clic en cualquier celda para agregar o editar una comida. El estado del badge del día marca como completado.</p>
+  <p style="color:var(--dim);font-size:12px;margin-bottom:14px">Clic en la celda para editar. Botón <strong style="color:var(--green)">✓ Preparar</strong> descuenta los ingredientes del inventario. Fondo <span style="color:var(--red)">rojo</span> = faltan ingredientes.</p>
   <div class="plan-wrap"><table class="plan">
   <thead><tr><th style="text-align:right;padding-right:10px;background:var(--surface2)">Momento</th>`;
 
@@ -858,11 +869,17 @@ function renderPlan() {
     plan.forEach((day, di) => {
       const meal = day.meals[mk];
       if (meal) {
-        const usesExp = meal.usesExp || false;
-        html += `<td onclick="openMealEdit('${S.curWeek}',${di},'${mk}')">
-          <div class="meal-cell ${usesExp?'uses-exp':'gen'}">
+        const chk = checkMealIngredients(meal);
+        const issueCount = chk ? chk.missing.length + chk.low.length : 0;
+        let cellCls = meal.prepared ? 'prepared' : issueCount > 0 ? 'issues' : meal.usesExp ? 'uses-exp' : 'gen';
+        html += `<td>
+          <div class="meal-cell ${cellCls}" onclick="openMealEdit('${S.curWeek}',${di},'${mk}')">
             <div class="meal-nm">${esc(meal.name)}</div>
             ${meal.notes ? `<div class="meal-ing">${esc(meal.notes)}</div>` : ''}
+            <div class="meal-footer">
+              <span class="meal-issues-badge">${meal.prepared ? '✅' : issueCount > 0 ? `⚠️ ${issueCount} falta${issueCount>1?'n':''}` : ''}</span>
+              ${!meal.prepared && meal.recipeId ? `<button class="prep-btn" onclick="event.stopPropagation();openQuickPrep('${S.curWeek}',${di},'${mk}')">✓ Preparar</button>` : ''}
+            </div>
           </div>
         </td>`;
       } else {
@@ -896,13 +913,27 @@ function openMealEdit(mon, di, mk) {
   const plan = getWeekPlan(mon);
   const day = plan[di];
   const meal = day.meals[mk];
-  const recs = RECIPES.filter(r => r.cat === mk);
+  const recs = [...RECIPES, ...(S.customRecipes||[])].filter(r => r.cat === mk);
+  const chk = meal ? checkMealIngredients(meal) : null;
 
   let recOpts = `<option value="">— Sin comida —</option>`;
   recs.forEach(r => {
     const sel = meal && meal.recipeId === r.id ? 'selected' : '';
     recOpts += `<option value="${r.id}" ${sel}>${esc(r.name)}</option>`;
   });
+
+  let ingHtml = '';
+  if (chk) {
+    ingHtml = `<div class="fg"><label>Ingredientes en inventario</label><ul class="ing-list">`;
+    chk.ok.forEach(i      => ingHtml += `<li><span>✅</span><span>${esc(i)}</span></li>`);
+    chk.low.forEach(i     => ingHtml += `<li><span>⚠️</span><span style="color:var(--yellow)">${esc(i)}</span><span style="color:var(--dim);font-size:11px">— 🔴 Bajo</span></li>`);
+    chk.missing.forEach(i => ingHtml += `<li><span>❌</span><span style="color:var(--red)">${esc(i)}</span><span style="color:var(--dim);font-size:11px">— No en inventario</span></li>`);
+    ingHtml += `</ul></div>`;
+    if (chk.missing.length || chk.low.length) {
+      window._pendingMissing = chk.missing;
+      ingHtml += `<button class="btn" style="margin-bottom:12px;width:100%" onclick="addMissingToInventory()">➕ Agregar faltantes al inventario como 🔴</button>`;
+    }
+  }
 
   openModal(`<h2>${MEAL_LABELS[mk]} · ${displayShort(day.date)}</h2>
     <div class="fg"><label>Receta guardada</label>
@@ -914,10 +945,13 @@ function openMealEdit(mon, di, mk) {
     <div class="fg"><label>Notas / ingredientes clave</label>
       <textarea id="me-notes" placeholder="Opcional">${esc(meal?meal.notes||'':'')}</textarea>
     </div>
-    <div class="modal-footer">
+    ${ingHtml}
+    <div class="modal-footer" style="flex-wrap:wrap">
       ${meal ? `<button class="btn btn-red" onclick="clearMeal('${mon}',${di},'${mk}')">Quitar</button>` : ''}
+      ${meal?.recipeId && !meal?.prepared ? `<button class="btn btn-green" onclick="openQuickPrep('${mon}',${di},'${mk}')">✅ Marcar preparada</button>` : ''}
+      ${meal?.prepared ? `<button class="btn" onclick="unmarkPrepared('${mon}',${di},'${mk}')">↩️ Desmarcar</button>` : ''}
       <button class="btn" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-green" onclick="saveMeal('${mon}',${di},'${mk}')">Guardar</button>
+      <button class="btn btn-blue" onclick="saveMeal('${mon}',${di},'${mk}')">Guardar</button>
     </div>`);
 }
 
@@ -944,16 +978,211 @@ function clearMeal(mon, di, mk) {
   save(); closeModal(); renderPlan();
 }
 
+// ─── PREPARE MEAL ────────────────────────────
+function openQuickPrep(mon, di, mk) {
+  const plan = getWeekPlan(mon);
+  const meal = plan[di].meals[mk];
+  if (!meal) return;
+  const chk = checkMealIngredients(meal);
+  const rec = chk?.recipe;
+
+  let ingRows = '';
+  if (rec) {
+    rec.ing.forEach(ing => {
+      const item = findInvMatch(ing);
+      if (!item) {
+        ingRows += `<li><span>❌</span><span style="color:var(--red)">${esc(ing)}</span><span style="color:var(--dim);font-size:11px">No en inventario</span></li>`;
+      } else if (item.s === 'r') {
+        ingRows += `<li><span>⚠️</span><span style="color:var(--yellow)">${esc(ing)}</span><span style="color:var(--dim);font-size:11px">Ya en 🔴 Bajo — no cambia</span></li>`;
+      } else {
+        ingRows += `<li><span>✅</span><span>${esc(ing)}</span><span style="color:var(--dim);font-size:11px">${statusLabel(item.s)} → ${statusLabel(cycleStatus(item.s))}</span></li>`;
+      }
+    });
+  }
+
+  let missingNote = '';
+  if (chk?.missing.length) {
+    window._pendingMissing = chk.missing;
+    missingNote = `<div style="background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.25);border-radius:6px;padding:10px;margin:12px 0;font-size:12px">
+      <strong style="color:var(--red)">❌ Sin inventario: ${chk.missing.map(i=>esc(i)).join(', ')}</strong>
+      <br><button class="btn" style="margin-top:8px;font-size:11px" onclick="addMissingToInventory()">➕ Agregar al inventario como 🔴</button>
+    </div>`;
+  }
+
+  openModal(`<h2>✅ Preparar: ${esc(meal.name)}</h2>
+    <p style="color:var(--dim);font-size:12px;margin-bottom:10px">Al confirmar, se actualizará el inventario:</p>
+    ${rec ? `<ul class="ing-list">${ingRows}</ul>` : '<p style="color:var(--dim);font-size:12px">Sin receta vinculada — no se modifica el inventario.</p>'}
+    ${missingNote}
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="confirmPrep('${mon}',${di},'${mk}')">✅ Confirmar preparada</button>
+    </div>`);
+}
+
+function confirmPrep(mon, di, mk) {
+  const plan = getWeekPlan(mon);
+  const meal = plan[di].meals[mk];
+  if (!meal) return;
+  const chk = checkMealIngredients(meal);
+  if (chk?.recipe) {
+    chk.recipe.ing.forEach(ing => {
+      const item = findInvMatch(ing);
+      if (item && item.s !== 'r') item.s = cycleStatus(item.s);
+    });
+    touchInv();
+  }
+  meal.prepared = true;
+  save(); closeModal(); renderPlan();
+  showToast('✅ Preparada — inventario actualizado');
+}
+
+function unmarkPrepared(mon, di, mk) {
+  const plan = getWeekPlan(mon);
+  const meal = plan[di].meals[mk];
+  if (meal) { meal.prepared = false; save(); closeModal(); renderPlan(); }
+}
+
+function addMissingToInventory() {
+  const items = window._pendingMissing || [];
+  if (!items.length) return;
+  let added = 0;
+  items.forEach(name => {
+    const existing = findInvMatch(name);
+    if (existing) { existing.s = 'r'; }
+    else { S.inv.push({ id: uid(), n: name, q: '—', s: 'r', e: null, t: 'Falta para receta', sec: 'nevera' }); added++; }
+  });
+  touchInv(); save();
+  showToast(`➕ Ingredientes agregados al inventario como 🔴`);
+  renderInvSections();
+}
+
+// ─── EXPORT PLAN ─────────────────────────────
+function openExportPlan() {
+  openModal(`<h2>📤 Exportar plan semanal</h2>
+    <p style="color:var(--dim);font-size:12px;margin-bottom:14px">${displayWeek(S.curWeek)}</p>
+    <div class="export-grid">
+      <button class="export-opt" onclick="exportPlanText()">
+        <div class="export-icon">📋</div><div class="export-lbl">Texto</div>
+        <div class="export-desc">Copia al portapapeles</div>
+      </button>
+      <button class="export-opt" onclick="exportPlanCSV()">
+        <div class="export-icon">📊</div><div class="export-lbl">CSV</div>
+        <div class="export-desc">Abre en Excel / Numbers</div>
+      </button>
+      <button class="export-opt" onclick="exportPlanPDF()">
+        <div class="export-icon">🖨️</div><div class="export-lbl">PDF / Imprimir</div>
+        <div class="export-desc">Abre diálogo de impresión</div>
+      </button>
+      <button class="export-opt" onclick="exportPlanShare()" ${!navigator.share?'style="opacity:.4;cursor:not-allowed"':''}>
+        <div class="export-icon">📲</div><div class="export-lbl">Compartir</div>
+        <div class="export-desc">${navigator.share?'Hoja nativa del sistema':'No disponible'}</div>
+      </button>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
+}
+
+function buildPlanText() {
+  const plan = getWeekPlan(S.curWeek);
+  let text = `📅 Plan — ${displayWeek(S.curWeek)}\n`;
+  plan.forEach(day => {
+    const hasMeals = MEAL_KEYS.some(mk => day.meals[mk]);
+    if (!hasMeals) return;
+    text += `\n${displayShort(day.date).toUpperCase()}${day.done?' ✅':''}\n`;
+    MEAL_KEYS.forEach(mk => {
+      const m = day.meals[mk];
+      if (m) text += `  ${MEAL_LABELS[mk]}: ${m.name}${m.prepared?' ✅':''}\n`;
+    });
+  });
+  return text.trim();
+}
+
+function buildPlanCSV() {
+  const plan = getWeekPlan(S.curWeek);
+  let csv = 'Día,Fecha,' + MEAL_KEYS.map(k => MEAL_LABELS[k]).join(',') + '\n';
+  plan.forEach(day => {
+    const d = new Date(day.date+'T00:00:00');
+    const names = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    csv += [names[d.getDay()], day.date, ...MEAL_KEYS.map(mk => {
+      const m = day.meals[mk]; return m ? `"${m.name.replace(/"/g,'""')}"` : '';
+    })].join(',') + '\n';
+  });
+  return csv;
+}
+
+async function exportPlanText() {
+  const text = buildPlanText();
+  try { await navigator.clipboard.writeText(text); closeModal(); showToast('✅ Copiado al portapapeles'); }
+  catch(e) {
+    document.getElementById('modal-body').innerHTML = `<h2>📋 Plan como texto</h2>
+      <textarea onclick="this.select()" style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;height:280px;padding:10px;width:100%;font-family:monospace;resize:vertical">${esc(text)}</textarea>
+      <div class="modal-footer"><button class="btn" onclick="closeModal()">Cerrar</button></div>`;
+  }
+}
+
+function exportPlanCSV() {
+  const blob = new Blob(['\uFEFF'+buildPlanCSV()], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `plan_${S.curWeek}.csv`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  closeModal(); showToast('✅ Descargando CSV…');
+}
+
+function exportPlanPDF() {
+  const plan = getWeekPlan(S.curWeek);
+  let rows = `<tr><th>Momento</th>${plan.map(d=>`<th>${displayShort(d.date)}</th>`).join('')}</tr>`;
+  MEAL_KEYS.forEach(mk => {
+    rows += `<tr><td class="slot">${MEAL_LABELS[mk]}</td>${plan.map(day => {
+      const m = day.meals[mk]; return `<td>${m ? esc(m.name) : ''}</td>`;
+    }).join('')}</tr>`;
+  });
+  const win = window.open('','_blank','width=900,height=600');
+  win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Plan Semanal</title>
+  <style>body{font-family:-apple-system,sans-serif;padding:20px;font-size:12px}h2{margin-bottom:12px}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:#f0f0f0;font-weight:600}.slot{background:#f7f7f7;font-weight:600;font-size:11px;white-space:nowrap}
+  button{background:#000;border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:12px;margin-bottom:12px;padding:7px 14px}
+  @media print{button{display:none}}</style></head><body>
+  <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+  <h2>📅 Plan — ${esc(displayWeek(S.curWeek))}</h2>
+  <table><tbody>${rows}</tbody></table></body></html>`);
+  win.document.close(); closeModal();
+}
+
+async function exportPlanShare() {
+  if (!navigator.share) return;
+  try { await navigator.share({ title:`📅 Plan ${displayWeek(S.curWeek)}`, text: buildPlanText() }); closeModal(); }
+  catch(e) {}
+}
+
 // ─── GENERATE PLAN ───────────────────────────
+function findInvMatch(ingName) {
+  const ing = ingName.toLowerCase().trim();
+  return S.inv.find(item => {
+    const nm = item.n.toLowerCase();
+    return nm.includes(ing) || ing.includes(nm.split(' ')[0]);
+  });
+}
+
+function checkMealIngredients(meal) {
+  if (!meal?.recipeId) return null;
+  const rec = [...RECIPES, ...(S.customRecipes||[])].find(r => r.id === meal.recipeId);
+  if (!rec) return null;
+  const missing = [], low = [], ok = [];
+  rec.ing.forEach(ing => {
+    const item = findInvMatch(ing);
+    if (!item) missing.push(ing);
+    else if (item.s === 'r') low.push(ing);
+    else ok.push(ing);
+  });
+  return { missing, low, ok, recipe: rec };
+}
+
 function generatePlan() {
   const now = new Date(); now.setHours(0,0,0,0);
 
-  function findItem(ingName) {
-    const ing = ingName.toLowerCase();
-    return S.inv.find(item => {
-      const nm = item.n.toLowerCase();
-      return nm.includes(ing) || ing.includes(nm.split(' ')[0]);
-    });
+  function findItem(ingName) { return findInvMatch(ingName); }
   }
 
   function scoreRecipe(rec) {
