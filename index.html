@@ -560,7 +560,7 @@ function setSort(key) {
   if (!S.invSort) S.invSort = { key, dir: 1 };
   else if (S.invSort.key === key) S.invSort.dir *= -1;
   else { S.invSort.key = key; S.invSort.dir = 1; }
-  renderInventory();
+  renderInvSections();
 }
 
 function sortItems(items) {
@@ -616,12 +616,26 @@ function renderInventory() {
 
   // Toolbar
   html += `<div class="toolbar">
-    <input class="search" type="text" placeholder="Buscar artículo…" value="${esc(S.search)}" oninput="S.search=this.value;renderInventory()">
+    <input class="search" type="text" placeholder="Buscar artículo…" value="${esc(S.search)}" oninput="onSearchInput(this)">
     <button class="btn btn-blue" onclick="openAddItem('congelador')">+ Añadir artículo</button>
     <button class="btn" onclick="exportMD()">⬇ Exportar .md</button>
-  </div>`;
+  </div>
+  <div id="inv-sections"></div>`;
 
+  el.innerHTML = html;
+  renderInvSections();
+}
+
+function onSearchInput(el) {
+  S.search = el.value;
+  renderInvSections();
+}
+
+function renderInvSections() {
+  const container = document.getElementById('inv-sections');
+  if (!container) return;
   const q = S.search.toLowerCase();
+  let html = '';
 
   for (const sec of SECTIONS) {
     const items = S.inv.filter(i => i.sec === sec && (!q || i.n.toLowerCase().includes(q)));
@@ -673,10 +687,10 @@ function renderInventory() {
     html += `</div>`;
   }
 
-  el.innerHTML = html;
+  container.innerHTML = html;
 }
 
-function toggleSec(sec) { S.collapsed[sec] = !S.collapsed[sec]; renderInventory(); }
+function toggleSec(sec) { S.collapsed[sec] = !S.collapsed[sec]; renderInvSections(); }
 
 function touchInv() { S.invLastUpdated = new Date().toISOString(); }
 
