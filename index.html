@@ -447,6 +447,201 @@ const RECIPES = [
    steps:['Batir 2 huevos con sal.','Verter en sartén engrasado con ghee a fuego bajo.','Agregar queso y doblar.'],note:''},
 ];
 
+// ─── PLAN RECIPES (extraídas de 15 semanas de planes alimentarios) ────────────
+const PLAN_RECIPES = [
+  // AYUNO
+  {id:'p1',cat:'ayuno',name:'Guatila licuada con piña',time:'5 min',srv:1,
+   ing:['guatila','piña'],
+   steps:['Pelar y picar la guatila y la piña.','Licuar 250 ml de agua con todos los ingredientes.','Servir sin colar.'],note:''},
+  {id:'p2',cat:'ayuno',name:'Batido verde (espinaca, manzana, pepino, piña)',time:'5 min',srv:1,
+   ing:['espinaca','manzana verde','pepino','piña','limón'],
+   steps:['Lavar y picar todos los ingredientes.','Licuar con 180 ml de agua a velocidad alta.','Servir sin colar.'],note:'Variante del batido verde con linaza opcional.'},
+  {id:'p3',cat:'ayuno',name:'Agua tibia con vinagre de cidra de manzana',time:'2 min',srv:1,
+   ing:['vinagre de cidra de manzana'],
+   steps:['Calentar 180 ml de agua.','Agregar 5 ml de vinagre de cidra de manzana.','Mezclar y consumir en ayunas.'],note:''},
+  {id:'p4',cat:'ayuno',name:'Infusión de flor de Jamaica con canela y cayena',time:'7 min',srv:1,
+   ing:['flor de jamaica','canela en rama','cayenne pepper'],
+   steps:['Hervir 250 ml de agua con la canela.','Apagar y agregar la flor de Jamaica.','Reposar 5 minutos y agregar una pizca de pimienta cayena.','Servir caliente.'],note:'La pimienta cayena pica mucho, usar con moderación.'},
+  // DESAYUNO
+  {id:'p5',cat:'desayuno',name:'Yuca cocida con huevos revueltos',time:'25 min',srv:1,
+   ing:['huevos','ghee','sal'],
+   steps:['Pelar y cocinar la yuca en agua con sal (20 min).','Revolver los huevos con sal.','Cocinar los huevos en sartén con ghee a fuego bajo.','Servir la yuca con los huevos.'],note:''},
+  {id:'p6',cat:'desayuno',name:'Avena trasnochada con yogur griego y fruta',time:'8 h (overnight)',srv:1,
+   ing:['avena en hojuelas','yogurt griego','leche','chia seeds','canela en polvo','arándanos'],
+   steps:['Mezclar avena, yogur griego, leche y chía en un frasco.','Agregar canela y una pizca de vainilla.','Cerrar y refrigerar toda la noche.','Al servir, agregar fruta fresca encima.'],note:''},
+  {id:'p7',cat:'desayuno',name:'Arepa de chía con huevos revueltos',time:'20 min',srv:1,
+   ing:['promasa','chia seeds','huevos','ghee','sal'],
+   steps:['Mezclar harina de maíz con chía, sal y agua hasta formar masa.','Dar forma redonda y aplanar a ~1 cm.','Dorar en budare por ambos lados (5-7 min c/u).','Preparar los huevos revueltos con ghee y servir.'],note:''},
+  {id:'p8',cat:'desayuno',name:'Cayeye: guineo verde cocido con queso',time:'25 min',srv:1,
+   ing:['guineos verdes','quesito','sal'],
+   steps:['Hervir el guineo verde con sal hasta que esté tierno (~20 min).','Machacar con un tenedor.','Agregar el queso campesino desmenuzado y mezclar.','Servir caliente.'],note:''},
+  {id:'p9',cat:'desayuno',name:'Arepa de chía con queso',time:'20 min',srv:1,
+   ing:['promasa','chia seeds','quesito','sal'],
+   steps:['Mezclar harina de maíz con chía, sal y agua.','Dar forma y aplanar.','Dorar en budare por ambos lados.','Rellenar con queso.'],note:''},
+  {id:'p10',cat:'desayuno',name:'Omelette con champiñones y maíz',time:'12 min',srv:1,
+   ing:['huevos','ghee','sal','pimienta negra molida'],
+   steps:['Batir los huevos con sal y pimienta.','Verter en sartén engrasado con ghee a fuego medio-bajo.','Agregar el relleno (champiñones, maíz, vegetales) en un lado.','Doblar y servir.'],note:''},
+  {id:'p11',cat:'desayuno',name:'Pancake de avena con huevo y fruta',time:'15 min',srv:1,
+   ing:['avena en hojuelas','huevos','leche','canela en polvo','ghee','arándanos'],
+   steps:['Mezclar avena, huevo, leche y canela en un bowl.','Dejar reposar 2 minutos.','Verter en sartén engrasado con ghee a fuego bajo.','Dorar 3 min por lado y servir con frutas.'],note:''},
+  {id:'p12',cat:'desayuno',name:'Huevos revueltos con jamón de pavo',time:'10 min',srv:1,
+   ing:['huevos','jamón serrano','ghee','sal'],
+   steps:['Batir los huevos con sal.','Picar el jamón de pavo.','Cocinar en sartén con ghee a fuego bajo revolviendo.','Servir con café o té.'],note:''},
+  {id:'p13',cat:'desayuno',name:'Sándwich de pan integral con huevo y aguacate',time:'10 min',srv:1,
+   ing:['pan tajado','huevos','lechuga','sal'],
+   steps:['Tostar el pan.','Cocinar el huevo (estrellado o cocido).','Pelar y cortar el aguacate en láminas.','Armar el sándwich y servir.'],note:''},
+  {id:'p14',cat:'desayuno',name:'Yuca cocida con queso campesino',time:'25 min',srv:1,
+   ing:['quesito','sal'],
+   steps:['Pelar y cocinar la yuca en agua con sal.','Escurrir y servir caliente.','Acompañar con queso campesino.'],note:''},
+  {id:'p15',cat:'desayuno',name:'2 deditos integrales con huevo y café',time:'10 min',srv:1,
+   ing:['pan tajado','huevos','ghee','sal'],
+   steps:['Cocinar el huevo al gusto en sartén con ghee.','Tostar los deditos de pan.','Servir con café o aromática.'],note:''},
+  // MEDIA MAÑANA
+  {id:'p17',cat:'mediaMañana',name:'Mandarina',time:'0 min',srv:1,
+   ing:['manzana roja'],steps:['Pelar y comer fresca.'],note:'Sustituir con la mandarina disponible.'},
+  {id:'p18',cat:'mediaMañana',name:'Pomelo (½ unidad)',time:'0 min',srv:1,
+   ing:['manzana roja'],steps:['Cortar el pomelo por la mitad.','Comer directamente o exprimir.'],note:''},
+  {id:'p19',cat:'mediaMañana',name:'Fresas',time:'0 min',srv:1,
+   ing:['arándanos'],steps:['Lavar las fresas.','Comer frescas o con un toque de limón.'],note:'7 unidades aprox.'},
+  {id:'p20',cat:'mediaMañana',name:'Melón',time:'0 min',srv:1,
+   ing:['piña'],steps:['Pelar y cortar el melón en trozos.','Refrigerar o servir frío.'],note:'120 g aprox.'},
+  {id:'p21',cat:'mediaMañana',name:'Manzana verde',time:'0 min',srv:1,
+   ing:['manzana verde'],steps:['Lavar la manzana.','Comer entera o en rodajas.'],note:''},
+  // ALMUERZO
+  {id:'p22',cat:'almuerzo',name:'Pechuga asada con habichuela y zanahoria',time:'30 min',srv:1,
+   ing:['pechugas','zanahorias','aceite de oliva','ajo','sal','pimienta negra molida'],
+   steps:['Sazonar la pechuga con sal, pimienta y ajo.','Asar en sartén o al horno 200°C por 20-25 min.','Cocinar la habichuela y zanahoria al vapor.','Servir la pechuga sobre los vegetales.'],note:''},
+  {id:'p23',cat:'almuerzo',name:'Salmón con ensalada de aguacate y rúgula',time:'20 min',srv:1,
+   ing:['salmón','lechuga','aceite de oliva','limón','sal','pimienta negra molida'],
+   steps:['Sazonar el salmón con sal, pimienta y limón.','Sellar en sartén con aceite a fuego medio-alto 4 min/lado.','Picar los vegetales de la ensalada.','Aliñar la ensalada con aceite, limón y sal. Servir.'],note:''},
+  {id:'p24',cat:'almuerzo',name:'Carne desmechada con ensalada de espinaca',time:'35 min',srv:1,
+   ing:['carne molida','espinaca','tomate','ajo','aceite de oliva','sal'],
+   steps:['Cocinar la carne con ajo, sal y especias hasta desmechar.','Lavar y picar espinaca y tomate.','Aliñar la ensalada con aceite y limón.','Servir la carne sobre la ensalada.'],note:''},
+  {id:'p25',cat:'almuerzo',name:'Lomito de cerdo asado con ensalada',time:'30 min',srv:1,
+   ing:['lomo de cerdo','ajo','aceite de oliva','sal','pimienta negra molida'],
+   steps:['Marinar el lomito con ajo, aceite, sal y pimienta.','Asar en sartén o al horno 200°C.','Dejar reposar 5 min antes de cortar.','Servir con ensalada de preferencia.'],note:''},
+  {id:'p26',cat:'almuerzo',name:'Filete de tilapia con ensalada de aguacate',time:'20 min',srv:1,
+   ing:['tilapia','lechuga','aceite de oliva','limón','ajo','sal'],
+   steps:['Sazonar la tilapia con sal, pimienta y ajo.','Cocinar en sartén con aceite 4-5 min/lado.','Picar los vegetales y aliñar.','Servir el filete sobre la ensalada.'],note:''},
+  {id:'p27',cat:'almuerzo',name:'Albóndigas asadas con vegetales salteados',time:'35 min',srv:1,
+   ing:['carne molida','huevos','zanahorias','sal','pimienta negra molida','ajo'],
+   steps:['Mezclar carne molida con ajo, sal, pimienta y huevo.','Formar albóndigas y hornear a 200°C por 20 min.','Saltear los vegetales en sartén con aceite.','Servir las albóndigas con los vegetales.'],note:''},
+  {id:'p28',cat:'almuerzo',name:'Pechuga rellena de espinaca y queso',time:'40 min',srv:1,
+   ing:['pechugas','espinaca','quesito','ajo','aceite de oliva','sal'],
+   steps:['Abrir la pechuga en mariposa y sazonar.','Rellenar con espinaca salteada y queso.','Cerrar con palillos y sellar en sartén.','Hornear a 200°C por 15-20 min.'],note:''},
+  {id:'p29',cat:'almuerzo',name:'Lomito de res a la pimienta con ensalada',time:'25 min',srv:1,
+   ing:['lomo fino','pimienta negra molida','aceite de oliva','sal'],
+   steps:['Cubrir el lomito con abundante pimienta negra.','Sellar en sartén caliente con aceite.','Cocinar al término deseado.','Dejar reposar y servir con ensalada.'],note:''},
+  {id:'p30',cat:'almuerzo',name:'Quinoa con pollo y vegetales',time:'30 min',srv:1,
+   ing:['pechugas','arroz integral','zanahorias','ajo','aceite de oliva','sal'],
+   steps:['Cocinar la quinoa según instrucciones.','Cocinar la pechuga en sartén con especias.','Saltear los vegetales con ajo y aceite.','Mezclar quinoa, pollo y vegetales. Servir.'],note:'Reemplazar arroz integral por quinoa.'},
+  {id:'p31',cat:'almuerzo',name:'Lasaña de zucchini con carne molida',time:'45 min',srv:2,
+   ing:['carne molida','pasta de tomate','ajo','sal','pimienta negra molida'],
+   steps:['Laminar el zucchini a lo largo con mandolina.','Sofreír carne molida con ajo, tomate y especias.','Armar capas: zucchini, carne, queso. Repetir.','Hornear a 180°C por 25 min.'],note:''},
+  {id:'p32',cat:'almuerzo',name:'Carne goulash con verduras',time:'40 min',srv:1,
+   ing:['carne molida','zanahorias','ajo','sal','pimienta negra molida'],
+   steps:['Sofreír ajo y cebolla en aceite.','Agregar la carne y dorar bien.','Añadir vegetales (zanahoria, pimentón, apio) y cocinar.','Sazonar y servir caliente con papa al vapor opcional.'],note:''},
+  {id:'p33',cat:'almuerzo',name:'Ensalada César con pechuga',time:'20 min',srv:1,
+   ing:['pechugas','lechuga','aceite de oliva','limón','sal'],
+   steps:['Cocinar y cortar la pechuga en tiras.','Picar la lechuga romana y demás vegetales.','Preparar aderezo César al gusto.','Mezclar todo y servir.'],note:''},
+  {id:'p34',cat:'almuerzo',name:'Pollo con champiñones y berenjenas salteadas',time:'25 min',srv:1,
+   ing:['pechugas','aceite de oliva','sal','pimienta negra molida'],
+   steps:['Cortar la pechuga en cubos y sazonar.','Saltear en sartén con aceite hasta dorar.','Agregar champiñones y berenjena y cocinar 5 min más.','Sazonar con salsa de soya o especias al gusto.'],note:''},
+  {id:'p35',cat:'almuerzo',name:'Salmón a la naranja con ensalada',time:'20 min',srv:1,
+   ing:['salmón','aceite de oliva','limón','sal','lechuga'],
+   steps:['Sazonar el salmón con sal y naranja/limón.','Sellar en sartén 4 min/lado.','Preparar ensalada de lechuga y zanahoria.','Servir el salmón sobre la ensalada.'],note:''},
+  {id:'p36',cat:'almuerzo',name:'Rollo de pechuga rellena de jamón y queso',time:'35 min',srv:1,
+   ing:['pechugas','jamón serrano','quesito','ajo','sal'],
+   steps:['Aplanar la pechuga y sazonar.','Colocar jamón y queso encima y enrollar.','Asegurar con palillos y sellar en sartén.','Hornear a 200°C por 15-18 min.'],note:''},
+  {id:'p37',cat:'almuerzo',name:'Pechuga asada con brócoli y coliflor',time:'30 min',srv:1,
+   ing:['pechugas','aceite de oliva','ajo','sal'],
+   steps:['Sazonar la pechuga con ajo, sal y especias.','Asar en sartén o al horno.','Cocinar brócoli y coliflor al vapor o rostizados.','Servir la pechuga con los vegetales.'],note:''},
+  {id:'p38',cat:'almuerzo',name:'Crema de lentejas con lomito encebollado',time:'40 min',srv:1,
+   ing:['lentejas','lomo de cerdo','ajo','aceite de oliva','sal'],
+   steps:['Cocinar lentejas con ajo, sal y caldo (25-30 min).','Licuar hasta obtener crema suave.','Sofreír el lomito en rodajas con cebolla caramelizada.','Servir la crema caliente con el lomito encima.'],note:''},
+  {id:'p39',cat:'almuerzo',name:'Ensalada de atún con lechuga y aguacate',time:'10 min',srv:1,
+   ing:['lechuga','aceite de oliva','limón','sal'],
+   steps:['Escurrir el atún.','Picar lechuga, tomate, pepino y aguacate.','Mezclar todo con el atún.','Aliñar con aceite, limón y sal. Servir frío.'],note:''},
+  {id:'p40',cat:'almuerzo',name:'Carne desmechada con lentejas y aguacate',time:'35 min',srv:1,
+   ing:['carne molida','lentejas','ajo','aceite de oliva','sal'],
+   steps:['Cocinar la carne hasta poder desmecharla.','Cocinar las lentejas por separado.','Picar aguacate y tomate.','Servir todo junto en un bowl.'],note:''},
+  {id:'p41',cat:'almuerzo',name:'Tilapia al ajillo con ensalada',time:'20 min',srv:1,
+   ing:['tilapia','pasta de ajo','aceite de oliva','limón','sal','lechuga'],
+   steps:['Sazonar la tilapia con ajo, sal y limón.','Cocinar en sartén con aceite 4-5 min/lado.','Preparar la ensalada y aliñar.','Servir el filete con la ensalada.'],note:''},
+  // MERIENDA
+  {id:'p42',cat:'merienda',name:'Yogur griego con arándanos',time:'2 min',srv:1,
+   ing:['yogurt griego','arándanos'],
+   steps:['Servir el yogur griego en un bowl.','Agregar los arándanos encima.','Opcional: un toque de miel.'],note:''},
+  {id:'p43',cat:'merienda',name:'Té chai con leche de avena',time:'5 min',srv:1,
+   ing:['chai en polvo'],
+   steps:['Calentar 200 ml de leche de avena.','Agregar chai en polvo al gusto.','Mezclar bien y servir caliente.'],note:''},
+  {id:'p44',cat:'merienda',name:'Mandarina',time:'0 min',srv:1,
+   ing:['manzana roja'],steps:['Pelar y comer fresca.'],note:'Sustituir con la disponible.'},
+  {id:'p45',cat:'merienda',name:'Arándanos 100g',time:'0 min',srv:1,
+   ing:['arándanos'],steps:['Servir 100 g de arándanos frescos o descongelados.'],note:''},
+  {id:'p46',cat:'merienda',name:'Almendras',time:'0 min',srv:1,
+   ing:['pistachos'],steps:['Servir 10 almendras crudas o tostadas.'],note:'Sustituir con pistachos u otro fruto seco.'},
+  {id:'p47',cat:'merienda',name:'Galletas de almendras',time:'0 min',srv:1,
+   ing:['miel'],steps:['Consumir 2-3 galletas de almendras.','Acompañar con té o aromática.'],note:''},
+  {id:'p48',cat:'merienda',name:'Crispetas',time:'3 min',srv:1,
+   ing:['palomitas'],steps:['Preparar 30 g de palomitas de maíz.','Condimentar con sal al gusto.'],note:'Evitar mantequilla en exceso.'},
+  // CENA
+  {id:'p49',cat:'cena',name:'Crema de ahuyama con pechuga desmechada',time:'35 min',srv:1,
+   ing:['pechugas','ajo','sal'],
+   steps:['Cocinar la ahuyama con ajo y sal (20 min).','Licuar hasta obtener crema suave.','Desmechar la pechuga cocida.','Servir la crema caliente con la pechuga encima.'],note:''},
+  {id:'p50',cat:'cena',name:'Crema de espinaca con pechuga',time:'30 min',srv:1,
+   ing:['pechugas','espinaca','ajo','sal'],
+   steps:['Cocinar espinaca con ajo y caldo.','Licuar y colar si desea.','Servir la crema con la pechuga desmechada.'],note:''},
+  {id:'p51',cat:'cena',name:'Crema de champiñones con pechuga',time:'30 min',srv:1,
+   ing:['pechugas','ajo','sal'],
+   steps:['Saltear los champiñones con ajo y mantequilla.','Agregar caldo y cocinar 10 min.','Licuar hasta obtener crema.','Servir con la pechuga encima.'],note:''},
+  {id:'p52',cat:'cena',name:'Tortilla integral con pechuga y aguacate',time:'15 min',srv:1,
+   ing:['pechugas','lechuga','aceite de oliva','sal'],
+   steps:['Calentar la tortilla integral.','Calentar la pechuga desmechada.','Preparar el relleno con aguacate, tomate y vegetales.','Armar la tortilla y servir.'],note:''},
+  {id:'p53',cat:'cena',name:'Arepa de chía con carne desmechada',time:'25 min',srv:1,
+   ing:['carne molida','promasa','chia seeds','sal'],
+   steps:['Preparar la arepa de chía.','Calentar la carne desmechada sazonada.','Rellenar la arepa con la carne.','Servir caliente.'],note:''},
+  {id:'p54',cat:'cena',name:'Sándwich de pan masa madre con atún',time:'8 min',srv:1,
+   ing:['pan tajado','aceite de oliva','sal'],
+   steps:['Escurrir el atún y mezclar con vegetales picados.','Tostar el pan masa madre.','Armar el sándwich con lechuga y tomate.','Servir inmediatamente.'],note:''},
+  {id:'p55',cat:'cena',name:'Hamburguesa envuelta en lechuga',time:'20 min',srv:1,
+   ing:['carne molida','lechuga','tomate','quesito','sal','pimienta negra molida'],
+   steps:['Sazonar la carne y formar la hamburguesa.','Cocinar en sartén caliente 4-5 min/lado.','Usar hojas de lechuga como "pan".','Armar con tomate, queso y demás ingredientes.'],note:''},
+  {id:'p56',cat:'cena',name:'Pastas de quinoa con carne molida y pomodoro',time:'30 min',srv:1,
+   ing:['carne molida','pasta tornillos','pasta de tomate','ajo','sal'],
+   steps:['Cocer la pasta al dente.','Sofreír ajo, carne molida y pasta de tomate.','Mezclar la pasta con la salsa.','Servir con queso parmesano.'],note:''},
+  {id:'p57',cat:'cena',name:'Falafel con tzatziki de yogur y eneldo',time:'35 min',srv:2,
+   ing:['yogurt griego','pasta de ajo','limón','sal'],
+   steps:['Preparar los falafels (garbanzos, especias, harina).','Hornear o freír hasta dorar.','Mezclar yogur griego con eneldo, pasta de ajo y limón.','Servir los falafels con la salsa tzatziki.'],note:''},
+  {id:'p58',cat:'cena',name:'Croquetas de atún con papitas air fryer',time:'30 min',srv:1,
+   ing:['ajo','sal','pimienta negra molida'],
+   steps:['Escurrir y desmenuzar el atún.','Mezclar con ajo, cebolla, perejil, huevo y pan rallado.','Formar las croquetas y refrigerar 15 min.','Freír u hornear hasta dorar. Servir con papas en air fryer.'],note:''},
+  {id:'p59',cat:'cena',name:'Caldo de pechuga con papa y verduras',time:'35 min',srv:1,
+   ing:['pechugas','zanahorias','ajo','sal'],
+   steps:['Hervir agua con ajo, cebolla y sal.','Agregar la pechuga y cocinar 20 min.','Añadir papa en cubos y verduras.','Cocinar 10 min más, ajustar sazón y servir.'],note:''},
+  {id:'p60',cat:'cena',name:'Ceviche de tilapia con rúgula y aguacate',time:'15 min',srv:1,
+   ing:['tilapia','limón','sal'],
+   steps:['Cortar la tilapia en cubos pequeños.','Marinar con abundante limón, sal y pimienta 10-15 min.','Agregar cebolla roja, cilantro y tomate.','Servir sobre rúgula con aguacate.'],note:''},
+  {id:'p61',cat:'cena',name:'Chuzo de pechuga con papita amarilla',time:'25 min',srv:1,
+   ing:['pechugas','aceite de oliva','sal','pimienta negra molida'],
+   steps:['Cortar la pechuga en cubos y sazonar.','Ensartar en palitos con pimentón y cebolla.','Asar a fuego alto rotando 10-12 min.','Servir con papita amarilla o chica cocida.'],note:''},
+  {id:'p62',cat:'cena',name:'Ensalada de atún con vegetales y aguacate',time:'8 min',srv:1,
+   ing:['lechuga','aceite de oliva','limón','sal'],
+   steps:['Escurrir el atún.','Picar lechuga, rúgula, aguacate, tomate y pimentón.','Mezclar todo con el atún.','Aliñar con aceite, limón y sal.'],note:''},
+  {id:'p63',cat:'cena',name:'Pastas de zucchini con carne molida',time:'25 min',srv:1,
+   ing:['carne molida','pasta de tomate','ajo','sal'],
+   steps:['Espiralizar el zucchini (pasta).','Sofreír carne molida con ajo, tomate y especias.','Calentar los espirales de zucchini brevemente.','Servir la carne sobre el zucchini con queso.'],note:''},
+  {id:'p64',cat:'cena',name:'Nuggets de pollo con papas air fryer',time:'20 min',srv:1,
+   ing:['pechugas','aceite de oliva','sal'],
+   steps:['Cortar la pechuga en trozos y sazonar.','Pasar por huevo y pan rallado.','Cocinar en air fryer 200°C por 12-15 min.','Servir con papas en air fryer.'],note:''},
+  {id:'p65',cat:'cena',name:'Crema de tomate con pechuga',time:'30 min',srv:1,
+   ing:['pechugas','pasta de tomate','ajo','sal'],
+   steps:['Sofreír ajo y tomates frescos o pasta de tomate.','Agregar caldo y cocinar 15 min.','Licuar hasta obtener crema suave.','Servir con la pechuga desmechada.'],note:''},
+  {id:'p66',cat:'cena',name:'Arepa rellena con pechuga y aguacate',time:'25 min',srv:1,
+   ing:['pechugas','promasa','chia seeds','sal'],
+   steps:['Preparar la arepa de chía.','Desmechar la pechuga cocida.','Cortar el aguacate en láminas.','Abrir la arepa y rellenar con pechuga, aguacate y pico de gallo.'],note:''},
+];
+
 const MEAL_LABELS = {
   ayuno:'Ayuno', desayuno:'Desayuno', mediaMañana:'Media mañana',
   almuerzo:'Almuerzo', merienda:'Merienda', cena:'Cena'
@@ -920,7 +1115,7 @@ function openMealEdit(mon, di, mk) {
   const plan = getWeekPlan(mon);
   const day = plan[di];
   const meal = day.meals[mk];
-  const recs = [...RECIPES, ...(S.customRecipes||[])].filter(r => r.cat === mk);
+  const recs = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].filter(r => r.cat === mk);
   const chk = meal ? checkMealIngredients(meal) : null;
 
   let recOpts = `<option value="">— Sin comida —</option>`;
@@ -972,7 +1167,7 @@ function openMealEdit(mon, di, mk) {
 function prefillMealName() {
   const rid = document.getElementById('me-rid').value;
   if (!rid) return;
-  const rec = [...RECIPES, ...(S.customRecipes||[])].find(r => r.id===rid);
+  const rec = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].find(r => r.id===rid);
   if (rec) {
     document.getElementById('me-name').value = rec.name;
     if (document.getElementById('me-notes') && !document.getElementById('me-notes').value) {
@@ -1246,7 +1441,7 @@ function findInvMatch(ingName) {
 
 function checkMealIngredients(meal) {
   if (!meal?.recipeId) return null;
-  const rec = [...RECIPES, ...(S.customRecipes||[])].find(r => r.id === meal.recipeId);
+  const rec = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].find(r => r.id === meal.recipeId);
   if (!rec) return null;
   const missing = [], low = [], ok = [];
   rec.ing.forEach(ing => {
@@ -1294,7 +1489,7 @@ function generatePlan() {
   }
 
   function best(cat) {
-    const pool = [...RECIPES, ...(S.customRecipes||[])].filter(r => r.cat === cat);
+    const pool = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].filter(r => r.cat === cat);
     const scored = pool.map(r => ({...r, score: scoreRecipe(r)})).sort((a,b) => b.score-a.score);
     const good = scored.filter(r => r.score > 4);
     return good.length ? good : scored; // fallback to all if none score high enough
@@ -1499,11 +1694,14 @@ function buildShoppingCSV() {
 function openExportModal() {
   const hasShare = !!navigator.share;
   openModal(`<h2>📤 Exportar lista de mercado</h2>
+    <div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);border-radius:6px;padding:9px 12px;font-size:11px;color:var(--blue);margin-bottom:14px;line-height:1.5">
+      💡 <strong>iPhone Notes:</strong> Para activar los checks interactivos, pega el texto en Notas y luego toca <strong>Aa → Lista de verificación</strong>. Las líneas con <code>- [ ]</code> se convierten automáticamente.
+    </div>
     <div class="export-grid">
       <button class="export-opt" onclick="exportText()">
         <div class="export-icon">📋</div>
-        <div class="export-lbl">Texto</div>
-        <div class="export-desc">Copia al portapapeles o muestra el texto</div>
+        <div class="export-lbl">Texto / Notas</div>
+        <div class="export-desc">Formato - [ ] para iPhone Notes</div>
       </button>
       <button class="export-opt" onclick="exportCSV()">
         <div class="export-icon">📊</div>
@@ -1604,7 +1802,7 @@ function renderRecetas() {
   </div>
   <div class="recipes-grid">`;
 
-  const allRecipes = [...RECIPES, ...(S.customRecipes||[])];
+  const allRecipes = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])];
   const filtered = allRecipes.filter(r => r.cat === S.recCat);
   filtered.forEach(rec => {
     const isOpen = S.recOpen && S.recOpen[rec.id];
@@ -1763,15 +1961,20 @@ function parseAndFill() {
   let name = '', ings = [], steps = [], mode = 'header';
 
   for (const line of lines) {
-    const ll = line.toLowerCase();
-    if (/^ingredientes?:?\s*$/.test(ll)) { mode = 'ing'; continue; }
-    if (/^(preparaci[oó]n|instrucciones?|pasos?|m[eé]todo|elaboraci[oó]n):?\s*$/.test(ll)) { mode = 'steps'; continue; }
+    const ll = line.toLowerCase().trim();
+    // Skip metadata lines (English recipe cards)
+    if (/^(course|cuisine|servings?|calories?|yield|total time|prep time|cook time|author|difficulty|rating)\b/.test(ll)) continue;
+    // Section headers (Spanish + English)
+    if (/^(ingredientes?|ingredients?):?\s*$/.test(ll)) { mode = 'ing'; continue; }
+    if (/^(preparaci[oó]n|instrucciones?|pasos?|m[eé]todo|elaboraci[oó]n|instructions?|directions?|method|steps?|how to make):?\s*$/.test(ll)) { mode = 'steps'; continue; }
+    // Subsection headers (like "Yogurt Dipping Sauce") — skip lines that are title-case and short
+    if (/^[A-ZÁÉÍÓÚ][^a-záéíóú]{5,}/.test(line) && line.length < 60 && !/^[-•*\d]/.test(line) && mode !== 'header') continue;
     if (mode === 'header') {
       if (!name) { name = line.replace(/^#+\s*/, ''); }
       continue;
     }
     const clean = line.replace(/^[-•*]\s*/, '').replace(/^\d+[.)]\s*/, '').trim();
-    if (!clean) continue;
+    if (!clean || clean.length < 3) continue;
     if (mode === 'ing') ings.push(clean);
     else if (mode === 'steps') steps.push(clean);
   }
@@ -1875,7 +2078,7 @@ function deleteCustomRecipe(id) {
 
 // ─── EXPORT RECIPES ──────────────────────────
 function buildRecipeText(cat) {
-  const allRecs = [...RECIPES, ...(S.customRecipes||[])];
+  const allRecs = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])];
   const cats = cat ? [cat] : ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
   let t = `📖 Recetario${cat ? ' — '+CAT_LABELS[cat] : ''}\n${'─'.repeat(40)}\n`;
   for (const c of cats) {
@@ -1934,7 +2137,7 @@ async function recExportText() {
 
 function recExportPDF() {
   const cat = document.getElementById('exp-rec-cat')?.value || '';
-  const allRecs = [...RECIPES, ...(S.customRecipes||[])];
+  const allRecs = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])];
   const cats = cat ? [cat] : ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
   let body = '';
   for (const c of cats) {
@@ -1982,7 +2185,7 @@ function openSuggestFromInventory() {
     const days = Math.round((d - now) / 86400000);
     return days >= 0 && days <= 7;
   });
-  const allRecs = [...RECIPES, ...(S.customRecipes||[])];
+  const allRecs = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])];
 
   // Score each recipe by how many available inventory items it uses
   const scored = allRecs.map(rec => {
@@ -2033,7 +2236,7 @@ function openSuggestFromInventory() {
 }
 
 function applyInventoryRecipe(recipeId) {
-  const rec = [...RECIPES, ...(S.customRecipes||[])].find(r => r.id === recipeId);
+  const rec = [...RECIPES, ...PLAN_RECIPES, ...(S.customRecipes||[])].find(r => r.id === recipeId);
   if (!rec) return;
   closeModal();
   // Switch to plan tab and open the first empty slot for this category
