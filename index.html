@@ -599,10 +599,11 @@ function renderInventory() {
   let html = '';
 
   // Stale banner
-  const lastUpd = new Date('2026-02-25T00:00:00');
-  const staleDays = Math.round((now - lastUpd) / 86400000);
-  if (staleDays > 7) {
-    html += `<div class="banner banner-stale">ℹ️ Inventario sincronizado desde archivos del <strong>25/02/2026</strong> (hace ${staleDays} días). Actualiza los estados según lo que tengas hoy.</div>`;
+  if (S.invLastUpdated) {
+    const staleDays = Math.round((now - new Date(S.invLastUpdated)) / 86400000);
+    if (staleDays > 15) {
+      html += `<div class="banner banner-stale">ℹ️ El inventario no se ha editado en <strong>${staleDays} días</strong>. ¿Todo sigue igual?</div>`;
+    }
   }
 
   // Expiry banners
@@ -677,11 +678,13 @@ function renderInventory() {
 
 function toggleSec(sec) { S.collapsed[sec] = !S.collapsed[sec]; renderInventory(); }
 
+function touchInv() { S.invLastUpdated = new Date().toISOString(); }
+
 function cycleItemStatus(id) {
   const item = S.inv.find(i => i.id===id);
   if (!item) return;
   item.s = cycleStatus(item.s);
-  save();
+  touchInv(); save();
   renderInventory();
   // Also refresh mercado if visible
   if (S.tab === 'mercado') renderMercado();
@@ -734,7 +737,7 @@ function confirmAddItem() {
     t: document.getElementById('mi-t').value.trim(),
     sec: document.getElementById('mi-sec').value,
   });
-  save(); closeModal(); renderInventory();
+  touchInv(); save(); closeModal(); renderInventory();
 }
 
 function openEditItem(id) {
@@ -782,13 +785,13 @@ function confirmEditItem(id) {
   item.sec = document.getElementById('ei-sec').value;
   item.e = document.getElementById('ei-e').value || null;
   item.t = document.getElementById('ei-t').value.trim();
-  save(); closeModal(); renderInventory();
+  touchInv(); save(); closeModal(); renderInventory();
 }
 
 function deleteItem(id) {
   if (!confirm('¿Eliminar este artículo?')) return;
   S.inv = S.inv.filter(i => i.id !== id);
-  save(); closeModal(); renderInventory();
+  touchInv(); save(); closeModal(); renderInventory();
 }
 
 // ─────────────────────────────────────────────
