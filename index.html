@@ -675,8 +675,9 @@ let S = {
   customRecipes: [],
   recipeEdits: {},   // { recipeId: { name?, time?, ing?, steps?, note?, cats? } }
   bulkUses: {},      // { itemId: useCount } for slow-deduction bulk items
-  recSearch: '',     // recipe search query
-  recSort: 'avail',  // 'alpha' | 'avail'
+  recSearch: '',       // recipe search query
+  recSort: 'avail',   // 'alpha' | 'avail'
+  hiddenRecipes: {},  // { recipeId: true } — hidden base/plan recipes
 };
 
 function save() {
@@ -716,8 +717,10 @@ function buildCatPills(selectedCats, prefix='rp') {
   const cats = ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
   return `<div class="cat-pills">` + cats.map(c => {
     const sel = selectedCats.includes(c);
-    return `<label class="cat-pill${sel?' sel':''}" onclick="this.classList.toggle('sel');document.getElementById('${prefix}-${c}').checked=!document.getElementById('${prefix}-${c}').checked">
-      <input type="checkbox" id="${prefix}-${c}" ${sel?'checked':''}>
+    // Use <label for=id> — browser toggles checkbox automatically on click;
+    // onchange then syncs the visual .sel class. No manual toggling needed.
+    return `<label class="cat-pill${sel?' sel':''}" for="${prefix}-${c}">
+      <input type="checkbox" id="${prefix}-${c}" ${sel?'checked':''} onchange="this.closest('.cat-pill').classList.toggle('sel',this.checked)">
       ${CAT_LABELS[c]}
     </label>`;
   }).join('') + `</div>`;
@@ -1479,11 +1482,36 @@ function useBulkItem(item) {
 }
 
 // ─── GENERATE PLAN ───────────────────────────
+// Strip quantities/units from an ingredient string to get just the item name
+function stripIngQuantity(raw) {
+  let s = raw.toLowerCase().trim();
+  // Remove leading fractions/numbers + units
+  s = s.replace(/^\d[\d/.,\s]*(cups?|tbsp?|tsp?|tablespoons?|teaspoons?|oz\.?|g|kg|ml|l\b|lbs?|lb|pounds?|pinch(es)?|squeeze|handful|bunch|cloves?|slices?|pieces?|cans?|jars?|stalks?)\s*(of\s+)?/i, '');
+  s = s.replace(/^(a\s+)?(pinch|squeeze|handful|bunch|slice|piece|can|jar|stalk)\s+(of\s+)?/i, '');
+  s = s.replace(/^\d+\s+/, '');
+  // Remove trailing descriptors in parens
+  s = s.replace(/\(.*?\)/g, '');
+  // Remove common adjectives: fresh, dried, chopped, minced, sliced, diced, etc.
+  s = s.replace(/\b(fresh|dried|frozen|chopped|minced|sliced|diced|grated|ground|whole|raw|cooked|peeled|pitted|rinsed|drained|softened|melted|room temperature|to taste|optional)\b/gi, '');
+  // Remove leading/trailing punctuation and extra spaces
+  s = s.replace(/^[,;\s]+|[,;\s]+$/g, '').replace(/\s{2,}/g, ' ').trim();
+  return s || raw.trim();
+}
+
 function findInvMatch(ingName) {
-  const ing = ingName.toLowerCase().trim();
+  const ing = stripIngQuantity(ingName);
+  if (!ing || ing.length < 2) return null;
   return S.inv.find(item => {
-    const nm = item.n.toLowerCase();
-    return nm.includes(ing) || ing.includes(nm.split(' ')[0]);
+    const nm = item.n.toLowerCase().trim();
+    if (nm.length < 2) return false;
+    if (nm === ing) return true;
+    if (nm.includes(ing) && ing.length >= 4) return true;
+    if (ing.includes(nm) && nm.length >= 4) return true;
+    // Word-level match: at least one meaningful word (≥4 chars) in common
+    const ingWords = ing.split(/\s+/).filter(w => w.length >= 4);
+    const nmWords  = nm.split(/\s+/).filter(w => w.length >= 4);
+    return ingWords.length > 0 && nmWords.length > 0 &&
+      ingWords.some(w => nmWords.some(n => n.includes(w) || w.includes(n)));
   });
 }
 
@@ -1826,22 +1854,24 @@ function showToast(msg) {
 // ─────────────────────────────────────────────
 // RECETAS
 // ─────────────────────────────────────────────
+
+// Full render: builds toolbar + grid. Call on tab switch or category change.
 function renderRecetas() {
   const el = document.getElementById('p-recetas');
   const cats = ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
-  const q = (S.recSearch||'').toLowerCase().trim();
 
-  // ── Top toolbar: category tabs + search + sort + action buttons ──
   let html = `<div class="rec-toolbar">
     <div class="rcat" style="flex:1;margin-bottom:0">
-      <button class="rcat-btn ${S.recCat==='todas'?'on':''}" onclick="S.recCat='todas';renderRecetas()">🗂 Todas</button>`;
+      <button class="rcat-btn ${S.recCat==='todas'?'on':''}" onclick="recSwitchCat('todas')">🗂 Todas</button>`;
   cats.forEach(c => {
-    html += `<button class="rcat-btn ${S.recCat===c?'on':''}" onclick="S.recCat='${c}';renderRecetas()">${CAT_LABELS[c]}</button>`;
+    html += `<button class="rcat-btn ${S.recCat===c?'on':''}" onclick="recSwitchCat('${c}')">${CAT_LABELS[c]}</button>`;
   });
   html += `</div></div>
   <div class="rec-toolbar" style="margin-bottom:18px">
-    <input class="search" placeholder="🔍 Buscar receta..." value="${esc(q)}" oninput="S.recSearch=this.value;renderRecetas()" style="flex:1;min-width:140px">
-    <select style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;padding:6px 10px;cursor:pointer" onchange="S.recSort=this.value;renderRecetas()">
+    <input id="rec-search-input" class="search" placeholder="🔍 Buscar receta..." value="${esc(S.recSearch||'')}"
+      oninput="S.recSearch=this.value;renderRecetasGrid()" style="flex:1;min-width:140px">
+    <select style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;padding:6px 10px;cursor:pointer"
+      onchange="S.recSort=this.value;renderRecetasGrid()">
       <option value="avail" ${(S.recSort||'avail')==='avail'?'selected':''}>🥬 Por disponibilidad</option>
       <option value="alpha" ${S.recSort==='alpha'?'selected':''}>🔤 A–Z</option>
     </select>
@@ -1850,16 +1880,31 @@ function renderRecetas() {
     <button class="btn" onclick="openBlogImporter()">🌐 Blog</button>
     <button class="btn" onclick="openExportRecipes()">📤 Exportar</button>
   </div>
-  <div class="recipes-grid">`;
+  <div id="recetas-grid" class="recipes-grid"></div>`;
 
-  const allRecipes = getAllRecipes();
+  el.innerHTML = html;
+  renderRecetasGrid();
+}
 
-  // Filter by category
+function recSwitchCat(cat) {
+  S.recCat = cat;
+  S.recSearch = ''; // clear search when switching category
+  renderRecetas();
+}
+
+// Partial render: only updates the cards grid. Call on search/sort/toggle.
+function renderRecetasGrid() {
+  const gridEl = document.getElementById('recetas-grid');
+  if (!gridEl) return;
+
+  const q = (S.recSearch||'').toLowerCase().trim();
+  const hidden = S.hiddenRecipes || {};
+  const allRecipes = getAllRecipes().filter(r => !hidden[r.id]);
+
   let filtered = S.recCat === 'todas'
     ? allRecipes
     : allRecipes.filter(r => recCats(r).includes(S.recCat));
 
-  // Filter by search query
   if (q) {
     filtered = filtered.filter(r =>
       r.name.toLowerCase().includes(q) ||
@@ -1869,17 +1914,16 @@ function renderRecetas() {
     );
   }
 
-  // Sort
   if (S.recSort === 'alpha') {
     filtered = [...filtered].sort((a,b) => a.name.localeCompare(b.name, 'es'));
   } else {
-    // By inventory availability (desc), then alpha
     filtered = [...filtered].sort((a,b) => {
       const sa = recipeAvailScore(a), sb = recipeAvailScore(b);
       return sb - sa || a.name.localeCompare(b.name, 'es');
     });
   }
 
+  let html = '';
   filtered.forEach(rec => {
     const isOpen = S.recOpen && S.recOpen[rec.id];
     const isCustom = !!(S.customRecipes||[]).find(r => r.id === rec.id);
@@ -1888,6 +1932,13 @@ function renderRecetas() {
     const editBadge = hasEdits ? '<span class="src-badge" style="background:rgba(63,185,80,.15);color:var(--green)">✏️ editada</span>' : '';
     const allCats = recCats(rec);
     const catBadges = allCats.map(c => `<span class="src-badge" style="background:rgba(88,166,255,.12);color:var(--blue)">${CAT_LABELS[c]||c}</span>`).join('');
+    // Delete/reset buttons for all recipe types
+    const deleteBtn = isCustom
+      ? `<button class="btn btn-red" style="padding:2px 7px;font-size:11px" onclick="event.stopPropagation();deleteCustomRecipe('${rec.id}')">✕</button>`
+      : `<button class="btn btn-red" style="padding:2px 7px;font-size:11px" onclick="event.stopPropagation();hideRecipe('${rec.id}')" title="Ocultar receta">✕</button>`;
+    const resetBtn = hasEdits
+      ? `<button class="btn" style="padding:2px 7px;font-size:11px;color:var(--dim)" onclick="event.stopPropagation();resetRecipeEdits('${rec.id}')" title="Restaurar cambios">↩️</button>`
+      : '';
     html += `<div class="rcard">
       <div class="rcard-hdr" onclick="toggleRec('${rec.id}')">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
@@ -1897,7 +1948,7 @@ function renderRecetas() {
           </div>
           <div style="display:flex;gap:4px;flex-shrink:0;margin-top:1px">
             <button class="btn" style="padding:2px 7px;font-size:11px" onclick="event.stopPropagation();openEditRecipe('${rec.id}')">✏️</button>
-            ${isCustom ? `<button class="btn btn-red" style="padding:2px 7px;font-size:11px" onclick="event.stopPropagation();deleteCustomRecipe('${rec.id}')">✕</button>` : (hasEdits ? `<button class="btn btn-red" style="padding:2px 7px;font-size:11px" onclick="event.stopPropagation();resetRecipeEdits('${rec.id}')">↩️</button>` : '')}
+            ${resetBtn}${deleteBtn}
           </div>
         </div>
       </div>
@@ -1910,6 +1961,7 @@ function renderRecetas() {
           const dot = inv ? (inv.s==='g'?'<span style="color:var(--green);font-size:10px">🟢</span>':inv.s==='y'?'<span style="color:var(--yellow);font-size:10px">🟡</span>':'<span style="color:var(--red);font-size:10px">🔴</span>') : '<span style="color:var(--dim);font-size:10px">✕</span>';
           return `<li style="display:flex;gap:5px;align-items:baseline">${dot}<span>${esc(i)}</span></li>`;
         }).join('')}</ul>
+        ${(rec.qty||[]).length ? `<div style="font-size:11px;color:var(--dim);margin-top:4px;margin-bottom:10px"><em>Cantidades: ${esc(rec.qty.join(', '))}</em></div>` : ''}
         <h4>Preparación</h4>
         <ol>${(rec.steps||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
         ${rec.note ? `<div class="note">⚠️ ${esc(rec.note)}</div>` : ''}
@@ -1918,18 +1970,25 @@ function renderRecetas() {
   });
 
   if (!filtered.length) {
-    html += `<div style="color:var(--dim);font-size:13px;padding:8px 0">
+    html = `<div style="color:var(--dim);font-size:13px;padding:8px 0">
       ${q ? `Sin resultados para "<strong>${esc(q)}</strong>". Prueba otra búsqueda.` : 'Sin recetas para esta categoría. ¡Agrega la primera!'}
     </div>`;
   }
-  html += `</div>`;
-  el.innerHTML = html;
+  gridEl.innerHTML = html;
 }
 
 function toggleRec(id) {
   if (!S.recOpen) S.recOpen = {};
   S.recOpen[id] = !S.recOpen[id];
-  renderRecetas();
+  renderRecetasGrid(); // only refresh grid, keep toolbar/search intact
+}
+
+function hideRecipe(id) {
+  if (!confirm('¿Ocultar esta receta del recetario? Puedes restaurarla desde Ajustes.')) return;
+  if (!S.hiddenRecipes) S.hiddenRecipes = {};
+  S.hiddenRecipes[id] = true;
+  save(); renderRecetasGrid();
+  showToast('Receta ocultada');
 }
 
 // ─────────────────────────────────────────────
@@ -1971,6 +2030,11 @@ function openAddRecipe() {
 
     <hr style="border:none;border-top:1px solid var(--border);margin-bottom:14px">
 
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="btn" style="flex:1;text-align:left;font-size:12px" onclick="suggestRecipeFromExpiring()">⏰ Sugerir receta con lo que vence pronto</button>
+      <button class="btn" style="flex:1;text-align:left;font-size:12px" onclick="openSupercookSearch()">🌐 Buscar en SuperCook</button>
+    </div>
+
     <div class="fg"><label>Nombre del plato *</label><input id="rec-name" type="text" placeholder="Ej: Arroz con pollo"></div>
     <div class="fg"><label>Categoría (puede seleccionar varias)</label>
       ${buildCatPills([S.recCat||'almuerzo'], 'rp')}
@@ -1979,8 +2043,20 @@ function openAddRecipe() {
       <div class="fg"><label>Tiempo total</label><input id="rec-time" type="text" placeholder="Ej: 30 min"></div>
       <div class="fg"><label>Porciones</label><input id="rec-srv" type="number" min="1" value="1"></div>
     </div>
-    <div class="fg"><label>Ingredientes (uno por línea)</label>
-      <textarea id="rec-ing" placeholder="2 huevos&#10;100g de harina&#10;Sal al gusto" style="min-height:80px"></textarea>
+    <div class="fg">
+      <label>Ingredientes para inventario <span style="color:var(--dim);font-weight:400">(nombre simple, uno por línea — se comparan con tu inventario)</span></label>
+      <div style="position:relative">
+        <input id="rec-ing-search" type="text" placeholder="Buscar ingrediente del inventario..." autocomplete="off"
+          oninput="recIngSearch(this.value)"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;padding:6px 12px;width:100%;margin-bottom:4px">
+        <div id="rec-ing-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);z-index:50;max-height:160px;overflow-y:auto"></div>
+      </div>
+      <textarea id="rec-ing" placeholder="huevos&#10;harina&#10;sal&#10;aceite de oliva" style="min-height:70px"></textarea>
+      <div style="font-size:11px;color:var(--dim);margin-top:3px">Solo el nombre del ingrediente (sin cantidades). Busca arriba para agregar del inventario.</div>
+    </div>
+    <div class="fg">
+      <label>Cantidades / medidas <span style="color:var(--dim);font-weight:400">(opcional, una por línea)</span></label>
+      <textarea id="rec-qty" placeholder="2 huevos grandes&#10;100g de harina integral&#10;1 pizca de sal&#10;2 cucharadas de aceite" style="min-height:60px"></textarea>
     </div>
     <div class="fg"><label>Preparación (un paso por línea)</label>
       <textarea id="rec-steps" placeholder="Mezclar los ingredientes secos.&#10;Agregar los huevos y batir bien.&#10;Cocinar 25 min a 180°C." style="min-height:90px"></textarea>
@@ -2119,7 +2195,13 @@ async function fetchAndParseLink() {
         const srvEl    = document.getElementById('rec-srv');
         const noteEl   = document.getElementById('rec-note');
         if (nameEl  && data.name)              nameEl.value  = data.name;
-        if (ingEl   && data.recipeIngredient)  ingEl.value   = data.recipeIngredient.join('\n');
+        if (ingEl   && data.recipeIngredient) {
+          // qty field gets full strings; ing field gets cleaned names only
+          const rawIngs = data.recipeIngredient;
+          const qtyEl = document.getElementById('rec-qty');
+          if (qtyEl) qtyEl.value = rawIngs.join('\n');
+          ingEl.value = rawIngs.map(i => stripIngQuantity(i)).join('\n');
+        }
         if (stepsEl && data.recipeInstructions) {
           const steps = [].concat(data.recipeInstructions).map(s =>
             typeof s === 'string' ? s : s.text || s.name || (s.itemListElement||[]).map(x=>x.text||'').join(' ') || ''
@@ -2163,10 +2245,78 @@ async function fetchAndParseLink() {
   if (statusEl) statusEl.innerHTML = `<span style="color:var(--green)">✅ Receta importada (${method}) — revisa y ajusta los campos.</span>`;
 }
 
+// ── Ingredient search autocomplete ──
+function recIngSearch(q) {
+  const sugEl = document.getElementById('rec-ing-suggestions');
+  if (!sugEl) return;
+  if (!q || q.length < 2) { sugEl.style.display = 'none'; return; }
+  const ql = q.toLowerCase();
+  const matches = (S.inv || []).filter(i => i.n.toLowerCase().includes(ql)).slice(0, 8);
+  if (!matches.length) { sugEl.style.display = 'none'; return; }
+  sugEl.innerHTML = matches.map(i =>
+    `<div style="padding:7px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)"
+       onmousedown="addIngFromSuggestion('${esc(i.n).replace(/'/g,"\\'")}')">
+      ${i.s==='g'?'🟢':i.s==='y'?'🟡':'🔴'} ${esc(i.n)}
+     </div>`
+  ).join('');
+  sugEl.style.display = 'block';
+}
+function addIngFromSuggestion(name) {
+  const ta = document.getElementById('rec-ing');
+  const inp = document.getElementById('rec-ing-search');
+  if (ta) {
+    const cur = ta.value.trim();
+    ta.value = cur ? cur + '\n' + name : name;
+  }
+  if (inp) inp.value = '';
+  const sugEl = document.getElementById('rec-ing-suggestions');
+  if (sugEl) sugEl.style.display = 'none';
+}
+
+// ── Suggest recipe based on expiring ingredients ──
+function suggestRecipeFromExpiring() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const expiring = (S.inv||[]).filter(i => {
+    if (!i.e) return false;
+    const d = new Date(i.e+'T00:00:00');
+    return Math.round((d - now) / 86400000) <= 7;
+  });
+  const avail = (S.inv||[]).filter(i => i.s !== 'r');
+  const allNames = [...new Set([...expiring, ...avail].map(i => i.n))];
+  if (!allNames.length) { showToast('No hay ingredientes en inventario'); return; }
+  // Open SuperCook with the available ingredients
+  const url = 'https://www.supercook.com/#/desktop';
+  window.open(url, '_blank');
+  const nameEl = document.getElementById('rec-name');
+  if (nameEl) nameEl.focus();
+  showToast('🌐 Abriendo SuperCook — busca con tus ingredientes y pega el link aquí');
+}
+
+function openSupercookSearch() {
+  const avail = (S.inv||[]).filter(i => i.s !== 'r').map(i => i.n);
+  if (!avail.length) {
+    window.open('https://www.supercook.com/', '_blank');
+    return;
+  }
+  // SuperCook doesn't have a URL-based ingredient search, so show a helper
+  openModal(`<h2>🌐 Buscar receta en internet</h2>
+    <p style="color:var(--dim);font-size:12px;margin-bottom:12px">Tus ingredientes disponibles:</p>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px;font-size:12px;margin-bottom:14px;max-height:120px;overflow-y:auto">${avail.map(n=>`<span style="display:inline-block;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);border-radius:10px;padding:2px 8px;margin:2px;color:var(--green)">${esc(n)}</span>`).join('')}</div>
+    <p style="font-size:12px;color:var(--dim);margin-bottom:14px">Abre uno de estos buscadores, escribe tus ingredientes y cuando encuentres una receta, copia el link en Nueva Receta → 🔗 Link.</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <a href="https://www.supercook.com/" target="_blank" class="btn" style="text-align:center;text-decoration:none;padding:10px">🍳 SuperCook.com — ingresa ingredientes, te da recetas</a>
+      <a href="https://www.myfridgefood.com/" target="_blank" class="btn" style="text-align:center;text-decoration:none;padding:10px">🧊 MyFridgeFood.com — recetas por lo que tienes</a>
+      <a href="https://glow-diaries.com/" target="_blank" class="btn" style="text-align:center;text-decoration:none;padding:10px">✨ Glow Diaries — recetas saludables</a>
+      <a href="https://www.google.com/search?q=recipe+with+${encodeURIComponent(avail.slice(0,4).join('+'))}" target="_blank" class="btn" style="text-align:center;text-decoration:none;padding:10px">🔍 Google — receta con ${esc(avail.slice(0,3).join(', '))}</a>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
+}
+
 function confirmAddRecipe() {
   const name = document.getElementById('rec-name').value.trim();
   if (!name) { alert('Ingresa el nombre del plato.'); document.getElementById('rec-name').focus(); return; }
   const ingsRaw = document.getElementById('rec-ing').value.trim();
+  const qtyRaw  = document.getElementById('rec-qty')?.value.trim() || '';
   const stepsRaw = document.getElementById('rec-steps').value.trim();
   const urlEl = document.getElementById('rec-url');
 
@@ -2181,6 +2331,7 @@ function confirmAddRecipe() {
     time: document.getElementById('rec-time').value.trim() || '—',
     srv: parseInt(document.getElementById('rec-srv').value) || 1,
     ing: ingsRaw ? ingsRaw.split('\n').map(l => l.trim()).filter(Boolean) : [],
+    qty: qtyRaw ? qtyRaw.split('\n').map(l => l.trim()).filter(Boolean) : [],
     steps: stepsRaw ? stepsRaw.split('\n').map(l => l.trim()).filter(Boolean) : [],
     note: document.getElementById('rec-note').value.trim(),
     source: window._recSrc || 'texto',
@@ -2201,7 +2352,7 @@ function deleteCustomRecipe(id) {
   if (!confirm('¿Eliminar esta receta?')) return;
   S.customRecipes = (S.customRecipes || []).filter(r => r.id !== id);
   save();
-  renderRecetas();
+  renderRecetasGrid();
 }
 
 // ─── EDIT RECIPE ─────────────────────────────
@@ -2221,8 +2372,13 @@ function openEditRecipe(id) {
     <div class="fg"><label>Categorías (puede seleccionar varias)</label>
       ${buildCatPills(currentCats, 'ec')}
     </div>
-    <div class="fg"><label>Ingredientes (uno por línea)</label>
-      <textarea id="ec-ing" style="min-height:100px">${esc((rec.ing||[]).join('\n'))}</textarea>
+    <div class="fg">
+      <label>Ingredientes para inventario <span style="color:var(--dim);font-weight:400">(nombre simple, sin cantidades)</span></label>
+      <textarea id="ec-ing" style="min-height:80px">${esc((rec.ing||[]).join('\n'))}</textarea>
+    </div>
+    <div class="fg">
+      <label>Cantidades / medidas <span style="color:var(--dim);font-weight:400">(opcional)</span></label>
+      <textarea id="ec-qty" style="min-height:60px">${esc((rec.qty||[]).join('\n'))}</textarea>
     </div>
     <div class="fg"><label>Preparación (un paso por línea)</label>
       <textarea id="ec-steps" style="min-height:100px">${esc((rec.steps||[]).join('\n'))}</textarea>
@@ -2241,18 +2397,21 @@ function saveRecipeEdit(id) {
   if (!name) { showToast('⚠️ Nombre requerido'); return; }
   const time = document.getElementById('ec-time')?.value.trim() || '—';
   const srv = parseInt(document.getElementById('ec-srv')?.value) || 1;
-  const ingsRaw = document.getElementById('ec-ing')?.value.trim() || '';
+  const ingsRaw  = document.getElementById('ec-ing')?.value.trim() || '';
+  const qtyRaw   = document.getElementById('ec-qty')?.value.trim() || '';
   const stepsRaw = document.getElementById('ec-steps')?.value.trim() || '';
   const note = document.getElementById('ec-note')?.value.trim() || '';
   const cats = readCatPills('ec');
+  if (!cats.length) { showToast('⚠️ Selecciona al menos una categoría'); return; }
 
   const edits = {
     name, time, srv,
-    ing: ingsRaw ? ingsRaw.split('\n').map(l => l.trim()).filter(Boolean) : [],
+    ing:   ingsRaw  ? ingsRaw.split('\n').map(l => l.trim()).filter(Boolean)  : [],
+    qty:   qtyRaw   ? qtyRaw.split('\n').map(l => l.trim()).filter(Boolean)   : [],
     steps: stepsRaw ? stepsRaw.split('\n').map(l => l.trim()).filter(Boolean) : [],
     note,
     cats: cats.length > 1 ? cats : [],
-    cat: cats[0] || 'almuerzo',
+    cat: cats[0],
   };
 
   // Is it a custom recipe?
@@ -2260,19 +2419,18 @@ function saveRecipeEdit(id) {
   if (customIdx >= 0) {
     S.customRecipes[customIdx] = { ...S.customRecipes[customIdx], ...edits };
   } else {
-    // Base or plan recipe — store in recipeEdits
     if (!S.recipeEdits) S.recipeEdits = {};
     S.recipeEdits[id] = edits;
   }
 
-  save(); closeModal(); renderRecetas();
+  save(); closeModal(); renderRecetasGrid();
   showToast('✅ Receta actualizada');
 }
 
 function resetRecipeEdits(id) {
   if (!confirm('¿Descartar todos los cambios de esta receta?')) return;
   if (S.recipeEdits) delete S.recipeEdits[id];
-  save(); renderRecetas();
+  save(); renderRecetasGrid();
   showToast('↩️ Cambios descartados');
 }
 
