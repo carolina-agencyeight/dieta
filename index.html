@@ -1373,6 +1373,7 @@ function openSyncConfig() {
     </div>
     <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
       ${cfg ? `<button class="btn btn-red" onclick="disconnectSync()">Desconectar</button>` : ''}
+      ${cfg ? `<button class="btn" onclick="closeModal();pullFromGist().then(()=>render())">🔄 Sincronizar ahora</button>` : ''}
       <button class="btn" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-blue" onclick="doCreateGist()">Crear Gist nuevo</button>
       <button class="btn btn-green" onclick="saveSync()">Guardar configuración</button>
@@ -1424,6 +1425,17 @@ if (_syncCfg) {
 } else {
   render();
 }
+
+// Auto-pull when the user returns to this tab/window
+let _lastPull = Date.now();
+function maybePull() {
+  if (!_syncCfg) return;
+  if (Date.now() - _lastPull < 10000) return; // no más de una vez cada 10s
+  _lastPull = Date.now();
+  pullFromGist(true).then(ok => { if (ok) render(); });
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) maybePull(); });
+window.addEventListener('focus', maybePull);
 </script>
 </body>
 </html>
