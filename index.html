@@ -465,6 +465,10 @@ let S = {
   collapsed: {},
   search: '',
   recCat: 'desayuno',
+  invSort: null,
+  invLastUpdated: null,
+  customRecipes: [],
+  bulkUses: {},      // { itemId: useCount } for slow-deduction bulk items
 };
 
 function save() {
@@ -935,9 +939,16 @@ function openMealEdit(mon, di, mk) {
     }
   }
 
+  // Store recipe list for "suggest another" cycling
+  window._mealEditRecs = recs;
+  window._mealEditCat = mk;
+
   openModal(`<h2>${MEAL_LABELS[mk]} · ${displayShort(day.date)}</h2>
     <div class="fg"><label>Receta guardada</label>
-      <select id="me-rid" onchange="prefillMealName()">${recOpts}</select>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="me-rid" onchange="prefillMealName()" style="flex:1">${recOpts}</select>
+        <button class="btn" style="white-space:nowrap;flex-shrink:0" onclick="suggestAnotherRecipe()" title="Sugerir otra receta del recetario">🔀 Otra</button>
+      </div>
     </div>
     <div class="fg"><label>O escribe el nombre del plato</label>
       <input id="me-name" type="text" value="${esc(meal?meal.name:'')}" placeholder="Nombre libre…">
@@ -958,8 +969,40 @@ function openMealEdit(mon, di, mk) {
 function prefillMealName() {
   const rid = document.getElementById('me-rid').value;
   if (!rid) return;
-  const rec = RECIPES.find(r => r.id===rid);
-  if (rec) document.getElementById('me-name').value = rec.name;
+  const rec = [...RECIPES, ...(S.customRecipes||[])].find(r => r.id===rid);
+  if (rec) {
+    document.getElementById('me-name').value = rec.name;
+    if (document.getElementById('me-notes') && !document.getElementById('me-notes').value) {
+      document.getElementById('me-notes').value = rec.ing.slice(0,4).join(', ');
+    }
+  }
+}
+
+function suggestAnotherRecipe() {
+  const recs = window._mealEditRecs || [];
+  if (!recs.length) return;
+  const sel = document.getElementById('me-rid');
+  const currentId = sel ? sel.value : '';
+  // Score and shuffle, pick one different from current
+  const now = new Date(); now.setHours(0,0,0,0);
+  const others = recs.filter(r => r.id !== currentId);
+  if (!others.length) return;
+  // Pick random from top half (by inventory score) for quality
+  const scored = others.map(r => {
+    let score = 0;
+    r.ing.forEach(ing => {
+      const item = findInvMatch(ing);
+      if (item) score += item.s === 'g' ? 2 : item.s === 'y' ? 1 : 0;
+    });
+    return {...r, score};
+  }).sort((a,b) => b.score - a.score);
+  const topN = Math.max(1, Math.ceil(scored.length / 2));
+  const pick = scored[Math.floor(Math.random() * topN)];
+  if (sel) sel.value = pick.id;
+  const nameEl = document.getElementById('me-name');
+  if (nameEl) nameEl.value = pick.name;
+  const notesEl = document.getElementById('me-notes');
+  if (notesEl) notesEl.value = pick.ing.slice(0,4).join(', ');
 }
 
 function saveMeal(mon, di, mk) {
@@ -994,6 +1037,10 @@ function openQuickPrep(mon, di, mk) {
         ingRows += `<li><span>❌</span><span style="color:var(--red)">${esc(ing)}</span><span style="color:var(--dim);font-size:11px">No en inventario</span></li>`;
       } else if (item.s === 'r') {
         ingRows += `<li><span>⚠️</span><span style="color:var(--yellow)">${esc(ing)}</span><span style="color:var(--dim);font-size:11px">Ya en 🔴 Bajo — no cambia</span></li>`;
+      } else if (isBulkItem(item.n)) {
+        const uses = (S.bulkUses||{})[item.id] || 0;
+        const remaining = BULK_USES_THRESHOLD - uses - 1;
+        ingRows += `<li><span>🫙</span><span>${esc(ing)}</span><span style="color:var(--dim);font-size:11px">A granel — baja nivel en ${remaining} uso${remaining===1?'':'s'} más</span></li>`;
       } else {
         ingRows += `<li><span>✅</span><span>${esc(ing)}</span><span style="color:var(--dim);font-size:11px">${statusLabel(item.s)} → ${statusLabel(cycleStatus(item.s))}</span></li>`;
       }
@@ -1027,7 +1074,12 @@ function confirmPrep(mon, di, mk) {
   if (chk?.recipe) {
     chk.recipe.ing.forEach(ing => {
       const item = findInvMatch(ing);
-      if (item && item.s !== 'r') item.s = cycleStatus(item.s);
+      if (!item || item.s === 'r') return;
+      if (isBulkItem(item.n)) {
+        useBulkItem(item); // slow deduction for bulk items
+      } else {
+        item.s = cycleStatus(item.s);
+      }
     });
     touchInv();
   }
@@ -1156,6 +1208,30 @@ async function exportPlanShare() {
   catch(e) {}
 }
 
+// ─── BULK ITEMS ──────────────────────────────
+// Items that last many uses before depleting a tier
+const BULK_KEYWORDS = ['ghee','mantequilla','pasta de ajo','aceite','condimento','sal ','sal rosada','pimienta','orégano','comino','canela','curry','cayenne','maggi','vinagre','miel','italian seasoning','complete seasoning'];
+const BULK_USES_THRESHOLD = 5; // uses before tier drops
+
+function isBulkItem(itemName) {
+  const n = itemName.toLowerCase();
+  return BULK_KEYWORDS.some(k => n.includes(k));
+}
+
+function useBulkItem(item) {
+  if (!S.bulkUses) S.bulkUses = {};
+  const count = (S.bulkUses[item.id] || 0) + 1;
+  S.bulkUses[item.id] = count;
+  if (count >= BULK_USES_THRESHOLD) {
+    S.bulkUses[item.id] = 0; // reset counter
+    if (item.s !== 'r') item.s = cycleStatus(item.s);
+  }
+  // show toast if getting low
+  if (count === BULK_USES_THRESHOLD - 1 && item.s !== 'r') {
+    showToast(`⚠️ ${item.n}: 1 uso más para bajar de nivel`);
+  }
+}
+
 // ─── GENERATE PLAN ───────────────────────────
 function findInvMatch(ingName) {
   const ing = ingName.toLowerCase().trim();
@@ -1183,7 +1259,6 @@ function generatePlan() {
   const now = new Date(); now.setHours(0,0,0,0);
 
   function findItem(ingName) { return findInvMatch(ingName); }
-  }
 
   function scoreRecipe(rec) {
     let score = 10;
@@ -1216,32 +1291,81 @@ function generatePlan() {
   }
 
   function best(cat) {
-    const pool = RECIPES.filter(r => r.cat === cat);
+    const pool = [...RECIPES, ...(S.customRecipes||[])].filter(r => r.cat === cat);
     const scored = pool.map(r => ({...r, score: scoreRecipe(r)})).sort((a,b) => b.score-a.score);
-    return scored.filter(r => r.score > 4);
+    const good = scored.filter(r => r.score > 4);
+    return good.length ? good : scored; // fallback to all if none score high enough
+  }
+
+  // Fisher-Yates shuffle
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i+1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 
   const pools = {};
   for (const mk of MEAL_KEYS) pools[mk] = best(mk);
 
   const plan = getWeekPlan(S.curWeek);
+  const days = plan.length; // typically 7
+
+  // For fruit categories, pick ONE option and repeat all week (less waste)
+  const FRUIT_CATS = ['mediaMañana', 'merienda'];
+  const weekFruit = {};
+  for (const fc of FRUIT_CATS) {
+    const pool = pools[fc];
+    if (pool.length) {
+      weekFruit[fc] = pool[Math.floor(Math.random() * pool.length)];
+    }
+  }
+
+  // Build shuffled rotation for non-fruit categories
+  const rotations = {};
+  for (const mk of MEAL_KEYS) {
+    if (FRUIT_CATS.includes(mk)) continue;
+    const pool = pools[mk];
+    if (!pool.length) continue;
+    // Repeat pool enough times to cover all days, then shuffle
+    const repeated = [];
+    while (repeated.length < days) repeated.push(...pool);
+    rotations[mk] = shuffle(repeated.slice(0, days));
+  }
 
   plan.forEach((day, di) => {
     for (const mk of MEAL_KEYS) {
-      if (day.meals[mk]) continue; // don't overwrite existing
-      const pool = pools[mk];
-      if (!pool.length) continue;
-      const rec = pool[di % pool.length];
-      day.meals[mk] = {
-        name: rec.name,
-        recipeId: rec.id,
-        notes: rec.ing.slice(0,4).join(', '),
-        usesExp: usesExpiring(rec)
-      };
+      // Skip prepared meals — never overwrite
+      if (day.meals[mk]?.prepared) continue;
+
+      if (FRUIT_CATS.includes(mk)) {
+        const rec = weekFruit[mk];
+        if (rec) {
+          day.meals[mk] = {
+            name: rec.name,
+            recipeId: rec.id,
+            notes: rec.ing.slice(0,4).join(', '),
+            usesExp: usesExpiring(rec)
+          };
+        }
+      } else {
+        const rot = rotations[mk];
+        if (!rot) continue;
+        const rec = rot[di];
+        day.meals[mk] = {
+          name: rec.name,
+          recipeId: rec.id,
+          notes: rec.ing.slice(0,4).join(', '),
+          usesExp: usesExpiring(rec)
+        };
+      }
     }
   });
 
   save(); renderPlan();
+  showToast('✨ Semana generada con recetas mezcladas');
 }
 
 // ─────────────────────────────────────────────
