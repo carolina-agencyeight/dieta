@@ -138,11 +138,18 @@ table.plan th.slot-lbl-hdr { position: sticky; left: 0; z-index: 3; background: 
 .shop-empty { color: var(--dim); font-size: 13px; font-style: italic; padding: 8px 4px; }
 
 /* RECIPES */
-.rcat { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-.rcat-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; color: var(--dim); cursor: pointer; font-size: 12px; padding: 5px 14px; transition: all .15s; }
+.rcat { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.rcat-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; color: var(--dim); cursor: pointer; font-size: 12px; padding: 5px 14px; transition: all .15s; white-space: nowrap; }
 .rcat-btn:hover { color: var(--text); }
 .rcat-btn.on { background: var(--blue); border-color: var(--blue); color: #000; font-weight: 600; }
+.rec-toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
 .recipes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+/* Category pills (multi-select) */
+.cat-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.cat-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--surface2); border: 2px solid var(--border); border-radius: 20px; color: var(--dim); cursor: pointer; font-size: 13px; padding: 8px 14px; transition: all .15s; user-select: none; min-height: 40px; }
+.cat-pill:hover { border-color: var(--blue); color: var(--text); }
+.cat-pill.sel { background: var(--blue); border-color: var(--blue); color: #000; font-weight: 600; }
+.cat-pill input[type=checkbox] { display: none; }
 .rcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
 .rcard-hdr { padding: 12px 16px; background: var(--surface2); cursor: pointer; user-select: none; }
 .rcard-hdr:hover { background: var(--border); }
@@ -668,6 +675,8 @@ let S = {
   customRecipes: [],
   recipeEdits: {},   // { recipeId: { name?, time?, ing?, steps?, note?, cats? } }
   bulkUses: {},      // { itemId: useCount } for slow-deduction bulk items
+  recSearch: '',     // recipe search query
+  recSort: 'avail',  // 'alpha' | 'avail'
 };
 
 function save() {
@@ -701,6 +710,33 @@ function getAllRecipes() {
 }
 // Returns effective categories for a recipe (supports multi-cat)
 function recCats(r) { return r.cats && r.cats.length ? r.cats : [r.cat]; }
+
+// Build pill-style multi-category selector HTML
+function buildCatPills(selectedCats, prefix='rp') {
+  const cats = ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
+  return `<div class="cat-pills">` + cats.map(c => {
+    const sel = selectedCats.includes(c);
+    return `<label class="cat-pill${sel?' sel':''}" onclick="this.classList.toggle('sel');document.getElementById('${prefix}-${c}').checked=!document.getElementById('${prefix}-${c}').checked">
+      <input type="checkbox" id="${prefix}-${c}" ${sel?'checked':''}>
+      ${CAT_LABELS[c]}
+    </label>`;
+  }).join('') + `</div>`;
+}
+function readCatPills(prefix='rp') {
+  return ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena']
+    .filter(c => document.getElementById(prefix+'-'+c)?.checked);
+}
+
+// Score a recipe by inventory availability (only 🟢/🟡 count; 🔴 = not available)
+function recipeAvailScore(rec) {
+  let avail = 0, missing = 0;
+  (rec.ing||[]).forEach(ing => {
+    const item = findInvMatch(ing);
+    if (!item || item.s === 'r') missing++;
+    else avail++;
+  });
+  return avail - missing * 2;
+}
 
 function getMonday(d) {
   const dt = new Date(d);
@@ -1793,34 +1829,65 @@ function showToast(msg) {
 function renderRecetas() {
   const el = document.getElementById('p-recetas');
   const cats = ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
+  const q = (S.recSearch||'').toLowerCase().trim();
 
-  let html = `<div class="toolbar" style="margin-bottom:14px;align-items:center">
-    <div class="rcat" style="flex:1;margin-bottom:0;display:flex;flex-wrap:wrap;gap:6px">`;
+  // ── Top toolbar: category tabs + search + sort + action buttons ──
+  let html = `<div class="rec-toolbar">
+    <div class="rcat" style="flex:1;margin-bottom:0">
+      <button class="rcat-btn ${S.recCat==='todas'?'on':''}" onclick="S.recCat='todas';renderRecetas()">🗂 Todas</button>`;
   cats.forEach(c => {
-    const custom = (S.customRecipes||[]).filter(r=>r.cat===c);
-    html += `<button class="rcat-btn ${S.recCat===c?'on':''}" onclick="S.recCat='${c}';renderRecetas()">${CAT_LABELS[c]}${custom.length?` <span style="font-size:10px;opacity:.7">+${custom.length}</span>`:''}`;
-    html += `</button>`;
+    html += `<button class="rcat-btn ${S.recCat===c?'on':''}" onclick="S.recCat='${c}';renderRecetas()">${CAT_LABELS[c]}</button>`;
   });
-  html += `</div>
-    <div style="display:flex;gap:6px;flex-shrink:0">
-      <button class="btn btn-green" onclick="openAddRecipe()">+ Nueva receta</button>
-      <button class="btn" onclick="openSuggestFromInventory()">🔍 Del inventario</button>
-      <button class="btn" onclick="openExportRecipes()">📤 Exportar</button>
-    </div>
+  html += `</div></div>
+  <div class="rec-toolbar" style="margin-bottom:18px">
+    <input class="search" placeholder="🔍 Buscar receta..." value="${esc(q)}" oninput="S.recSearch=this.value;renderRecetas()" style="flex:1;min-width:140px">
+    <select style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;padding:6px 10px;cursor:pointer" onchange="S.recSort=this.value;renderRecetas()">
+      <option value="avail" ${(S.recSort||'avail')==='avail'?'selected':''}>🥬 Por disponibilidad</option>
+      <option value="alpha" ${S.recSort==='alpha'?'selected':''}>🔤 A–Z</option>
+    </select>
+    <button class="btn btn-green" onclick="openAddRecipe()">+ Nueva</button>
+    <button class="btn" onclick="openSuggestFromInventory()">🔍 Del inventario</button>
+    <button class="btn" onclick="openBlogImporter()">🌐 Blog</button>
+    <button class="btn" onclick="openExportRecipes()">📤 Exportar</button>
   </div>
   <div class="recipes-grid">`;
 
   const allRecipes = getAllRecipes();
-  const filtered = allRecipes.filter(r => recCats(r).includes(S.recCat));
+
+  // Filter by category
+  let filtered = S.recCat === 'todas'
+    ? allRecipes
+    : allRecipes.filter(r => recCats(r).includes(S.recCat));
+
+  // Filter by search query
+  if (q) {
+    filtered = filtered.filter(r =>
+      r.name.toLowerCase().includes(q) ||
+      (r.ing||[]).some(i => i.toLowerCase().includes(q)) ||
+      (r.steps||[]).some(s => s.toLowerCase().includes(q)) ||
+      recCats(r).some(c => (CAT_LABELS[c]||'').toLowerCase().includes(q))
+    );
+  }
+
+  // Sort
+  if (S.recSort === 'alpha') {
+    filtered = [...filtered].sort((a,b) => a.name.localeCompare(b.name, 'es'));
+  } else {
+    // By inventory availability (desc), then alpha
+    filtered = [...filtered].sort((a,b) => {
+      const sa = recipeAvailScore(a), sb = recipeAvailScore(b);
+      return sb - sa || a.name.localeCompare(b.name, 'es');
+    });
+  }
+
   filtered.forEach(rec => {
     const isOpen = S.recOpen && S.recOpen[rec.id];
     const isCustom = !!(S.customRecipes||[]).find(r => r.id === rec.id);
     const hasEdits = !!(S.recipeEdits||{})[rec.id];
     const srcBadge = isCustom && rec.source ? `<span class="src-badge">${rec.source==='foto'?'📷 Foto':rec.source==='link'?'🔗 Link':rec.source==='plan'?'📅 Plan':'✏️ Texto'}</span>` : (rec.source==='plan'?'<span class="src-badge">📅 Plan</span>':'');
     const editBadge = hasEdits ? '<span class="src-badge" style="background:rgba(63,185,80,.15);color:var(--green)">✏️ editada</span>' : '';
-    // Extra categories badge
-    const extraCats = recCats(rec).filter(c => c !== S.recCat);
-    const catBadges = extraCats.map(c => `<span class="src-badge" style="background:rgba(88,166,255,.12);color:var(--blue)">${CAT_LABELS[c]||c}</span>`).join('');
+    const allCats = recCats(rec);
+    const catBadges = allCats.map(c => `<span class="src-badge" style="background:rgba(88,166,255,.12);color:var(--blue)">${CAT_LABELS[c]||c}</span>`).join('');
     html += `<div class="rcard">
       <div class="rcard-hdr" onclick="toggleRec('${rec.id}')">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
@@ -1850,7 +1917,11 @@ function renderRecetas() {
     </div>`;
   });
 
-  if (!filtered.length) html += `<div style="color:var(--dim);font-size:13px;padding:8px 0">Sin recetas guardadas para esta categoría. ¡Agrega la primera!</div>`;
+  if (!filtered.length) {
+    html += `<div style="color:var(--dim);font-size:13px;padding:8px 0">
+      ${q ? `Sin resultados para "<strong>${esc(q)}</strong>". Prueba otra búsqueda.` : 'Sin recetas para esta categoría. ¡Agrega la primera!'}
+    </div>`;
+  }
   html += `</div>`;
   el.innerHTML = html;
 }
@@ -1900,16 +1971,9 @@ function openAddRecipe() {
 
     <hr style="border:none;border-top:1px solid var(--border);margin-bottom:14px">
 
-    <div class="fg-row">
-      <div class="fg"><label>Nombre del plato *</label><input id="rec-name" type="text" placeholder="Ej: Arroz con pollo"></div>
-      <div class="fg"><label>Categoría</label><select id="rec-cat">
-        <option value="ayuno">Ayuno</option>
-        <option value="desayuno">Desayuno</option>
-        <option value="mediaMañana">Media mañana</option>
-        <option value="almuerzo">Almuerzo</option>
-        <option value="merienda">Merienda</option>
-        <option value="cena">Cena</option>
-      </select></div>
+    <div class="fg"><label>Nombre del plato *</label><input id="rec-name" type="text" placeholder="Ej: Arroz con pollo"></div>
+    <div class="fg"><label>Categoría (puede seleccionar varias)</label>
+      ${buildCatPills([S.recCat||'almuerzo'], 'rp')}
     </div>
     <div class="fg-row">
       <div class="fg"><label>Tiempo total</label><input id="rec-time" type="text" placeholder="Ej: 30 min"></div>
@@ -1929,9 +1993,6 @@ function openAddRecipe() {
       <button class="btn btn-green" onclick="confirmAddRecipe()">Guardar receta</button>
     </div>`);
 
-  // Pre-select current category
-  const sel = document.getElementById('rec-cat');
-  if (sel) sel.value = S.recCat;
 }
 
 function switchSrc(src) {
@@ -2109,9 +2170,13 @@ function confirmAddRecipe() {
   const stepsRaw = document.getElementById('rec-steps').value.trim();
   const urlEl = document.getElementById('rec-url');
 
+  const selectedCats = readCatPills('rp');
+  if (!selectedCats.length) { alert('Selecciona al menos una categoría.'); return; }
+
   const rec = {
     id: uid(),
-    cat: document.getElementById('rec-cat').value,
+    cat: selectedCats[0],
+    cats: selectedCats.length > 1 ? selectedCats : [],
     name,
     time: document.getElementById('rec-time').value.trim() || '—',
     srv: parseInt(document.getElementById('rec-srv').value) || 1,
@@ -2128,7 +2193,7 @@ function confirmAddRecipe() {
   window._recImgData = null;
   save();
   closeModal();
-  S.recCat = rec.cat;
+  S.recCat = selectedCats[0];
   renderRecetas();
 }
 
@@ -2144,12 +2209,6 @@ function openEditRecipe(id) {
   const rec = getAllRecipes().find(r => r.id === id);
   if (!rec) return;
   const currentCats = recCats(rec);
-  const cats = ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
-  const catCheckboxes = cats.map(c => `
-    <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:3px 0">
-      <input type="checkbox" id="ec-cat-${c}" ${currentCats.includes(c)?'checked':''} style="accent-color:var(--blue)">
-      ${CAT_LABELS[c]}
-    </label>`).join('');
 
   openModal(`<h2>✏️ Editar: ${esc(rec.name)}</h2>
     <div class="fg"><label>Nombre del plato</label>
@@ -2160,9 +2219,7 @@ function openEditRecipe(id) {
       <div class="fg"><label>Porciones</label><input id="ec-srv" type="number" min="1" value="${rec.srv||1}"></div>
     </div>
     <div class="fg"><label>Categorías (puede seleccionar varias)</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:8px 10px">
-        ${catCheckboxes}
-      </div>
+      ${buildCatPills(currentCats, 'ec')}
     </div>
     <div class="fg"><label>Ingredientes (uno por línea)</label>
       <textarea id="ec-ing" style="min-height:100px">${esc((rec.ing||[]).join('\n'))}</textarea>
@@ -2187,8 +2244,7 @@ function saveRecipeEdit(id) {
   const ingsRaw = document.getElementById('ec-ing')?.value.trim() || '';
   const stepsRaw = document.getElementById('ec-steps')?.value.trim() || '';
   const note = document.getElementById('ec-note')?.value.trim() || '';
-  const cats = ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena']
-    .filter(c => document.getElementById('ec-cat-'+c)?.checked);
+  const cats = readCatPills('ec');
 
   const edits = {
     name, time, srv,
@@ -2332,18 +2388,19 @@ function openSuggestFromInventory() {
   const allRecs = getAllRecipes();
 
   // Score each recipe by how many available inventory items it uses
+  // 🔴 Bajo is treated as missing (needs restocking before using)
   const scored = allRecs.map(rec => {
     let score = 0, usesExpiring = false;
     const ingStatus = (rec.ing||[]).map(ing => {
       const item = findInvMatch(ing);
       if (!item) return { ing, status: 'missing' };
-      if (item.s === 'r') { score += 1; return { ing, status: 'low', item }; }
+      if (item.s === 'r') return { ing, status: 'low', item };  // 🔴 = needs buying, not available
       if (item.s === 'y') { score += 2; return { ing, status: 'ok', item }; }
       score += 3;
       if (expiring.find(e => e.id === item.id)) { score += 5; usesExpiring = true; }
       return { ing, status: 'full', item };
     });
-    const missing = ingStatus.filter(i => i.status === 'missing').length;
+    const missing = ingStatus.filter(i => i.status === 'missing' || i.status === 'low').length;
     score -= missing * 2;
     return { rec, score, usesExpiring, ingStatus, missing };
   }).sort((a,b) => b.score - a.score);
@@ -2352,7 +2409,8 @@ function openSuggestFromInventory() {
   const expiringNames = expiring.map(i => i.n).join(', ');
 
   let cards = top.map(({rec, score, usesExpiring, ingStatus, missing}) => {
-    const pct = Math.max(0, Math.min(100, Math.round(((ingStatus.length - missing) / Math.max(1,ingStatus.length)) * 100)));
+    const available = ingStatus.filter(i => i.status === 'full' || i.status === 'ok').length;
+    const pct = Math.max(0, Math.min(100, Math.round((available / Math.max(1,ingStatus.length)) * 100)));
     return `<div style="background:var(--surface2);border:1px solid ${usesExpiring?'rgba(219,109,40,.4)':'var(--border)'};border-radius:var(--r);padding:12px;cursor:pointer" onclick="applyInventoryRecipe('${rec.id}')">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div>
@@ -2390,7 +2448,188 @@ function applyInventoryRecipe(recipeId) {
 }
 
 // ─────────────────────────────────────────────
-// MODAL
+// BLOG IMPORTER
+// ─────────────────────────────────────────────
+function openBlogImporter() {
+  openModal(`<h2>🌐 Importar desde blog</h2>
+    <p style="color:var(--dim);font-size:12px;margin-bottom:14px">Pega la URL de un blog de recetas (ej: glow-diaries.com) y buscaremos todas las recetas disponibles para que puedas importarlas una a una.</p>
+    <div class="fg">
+      <label>URL del blog</label>
+      <div style="display:flex;gap:6px">
+        <input id="blog-url" type="url" placeholder="https://glow-diaries.com/" style="flex:1">
+        <button class="btn btn-blue" style="flex-shrink:0" onclick="scrapeBlogLinks()">🔍 Buscar recetas</button>
+      </div>
+    </div>
+    <div id="blog-status" style="font-size:12px;color:var(--dim);margin:8px 0"></div>
+    <div id="blog-links" style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
+}
+
+async function scrapeBlogLinks() {
+  const urlEl = document.getElementById('blog-url');
+  const statusEl = document.getElementById('blog-status');
+  const linksEl = document.getElementById('blog-links');
+  const baseUrl = urlEl?.value.trim();
+  if (!baseUrl || !baseUrl.startsWith('http')) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">⚠️ Pega una URL válida.</span>';
+    return;
+  }
+
+  if (statusEl) statusEl.innerHTML = '<span style="color:var(--yellow)">⏳ Buscando recetas en el blog…</span>';
+  if (linksEl) linksEl.innerHTML = '';
+
+  // Fetch the page through proxies
+  const proxies = [
+    `https://api.allorigins.win/get?url=${encodeURIComponent(baseUrl)}`,
+    `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(baseUrl)}`,
+  ];
+  let html = null;
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) continue;
+      const data = await res.text();
+      if (proxy.includes('allorigins')) {
+        try { html = JSON.parse(data).contents; } catch { html = data; }
+      } else { html = data; }
+      if (html && html.includes('<')) break;
+    } catch { continue; }
+  }
+
+  if (!html) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">❌ No se pudo acceder al blog. Intenta con una URL diferente.</span>';
+    return;
+  }
+
+  // Extract links that look like recipe posts
+  const origin = new URL(baseUrl).origin;
+  const seen = new Set();
+  const recipeLinks = [];
+
+  // 1. Try JSON-LD sitelinks / ItemList
+  const ldMatches = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const m of ldMatches) {
+    try {
+      let data = JSON.parse(m[1]);
+      const items = data['@graph'] || (Array.isArray(data) ? data : [data]);
+      for (const item of items) {
+        if ([].concat(item['@type']||[]).includes('Recipe') && item.url) {
+          if (!seen.has(item.url)) { seen.add(item.url); recipeLinks.push({ url: item.url, name: item.name || item.url }); }
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Fallback: find <a href> links that look like recipe pages
+  if (recipeLinks.length < 3) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    div.querySelectorAll('a[href]').forEach(a => {
+      const href = a.href || a.getAttribute('href') || '';
+      const text = (a.textContent || '').trim();
+      let abs = '';
+      try {
+        abs = href.startsWith('http') ? href : new URL(href, origin).href;
+      } catch { return; }
+      // Must be on the same domain, not the root, not a category/tag/page link
+      if (!abs.startsWith(origin)) return;
+      const path = new URL(abs).pathname;
+      if (path === '/' || path.length < 5) return;
+      if (/\/(category|tag|page|author|search|feed|wp-|#)/.test(path)) return;
+      if (seen.has(abs)) return;
+      seen.add(abs);
+      if (text.length > 3 && text.length < 120) {
+        recipeLinks.push({ url: abs, name: text });
+      }
+    });
+  }
+
+  if (!recipeLinks.length) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">😕 No encontramos recetas. Prueba copiar la URL de una receta específica y usa el botón 🔗 Link en "Nueva receta".</span>';
+    return;
+  }
+
+  if (statusEl) statusEl.innerHTML = `<span style="color:var(--green)">✅ ${recipeLinks.length} receta${recipeLinks.length>1?'s':''} encontrada${recipeLinks.length>1?'s':''}. Toca "Importar" para agregar al recetario.</span>`;
+
+  if (linksEl) {
+    linksEl.innerHTML = recipeLinks.slice(0, 40).map((link, i) => `
+      <div id="blog-item-${i}" style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px">
+        <div style="flex:1;font-size:12px"><a href="${esc(link.url)}" target="_blank" style="color:var(--blue)">${esc(link.name.slice(0,80))}</a></div>
+        <button class="btn btn-green" style="font-size:11px;padding:4px 10px;flex-shrink:0" onclick="importBlogRecipe('${esc(link.url).replace(/'/g,"\\'")}','${esc(link.name.slice(0,60)).replace(/'/g,"\\'")}',${i})">Importar</button>
+      </div>`).join('');
+  }
+}
+
+async function importBlogRecipe(url, fallbackName, idx) {
+  const btn = document.querySelector(`#blog-item-${idx} button`);
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+
+  const proxies = [
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+  let html = null;
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) continue;
+      const data = await res.text();
+      if (proxy.includes('allorigins')) { try { html = JSON.parse(data).contents; } catch { html = data; } }
+      else { html = data; }
+      if (html && html.includes('<')) break;
+    } catch { continue; }
+  }
+
+  if (!html) {
+    if (btn) { btn.textContent = '❌ Error'; btn.disabled = false; }
+    return;
+  }
+
+  // Try JSON-LD first
+  let rec = null;
+  const ldMatches = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const m of ldMatches) {
+    try {
+      let data = JSON.parse(m[1]);
+      if (data['@graph']) data = data['@graph'].find(x => [].concat(x['@type']||[]).includes('Recipe')) || {};
+      if ([].concat(data['@type']||[]).includes('Recipe')) {
+        const steps = [].concat(data.recipeInstructions||[]).map(s =>
+          typeof s === 'string' ? s : s.text || s.name || ''
+        ).filter(Boolean);
+        const timeRaw = data.totalTime || data.cookTime || data.prepTime || '';
+        let time = timeRaw;
+        const iso = timeRaw.match?.(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+        if (iso) time = [iso[1]?iso[1]+' h':'', iso[2]?iso[2]+' min':''].filter(Boolean).join(' ');
+        rec = {
+          id: uid(), cat: 'almuerzo', cats: [],
+          name: data.name || fallbackName,
+          time: time || '—',
+          srv: parseInt([].concat(data.recipeYield||[])[0]) || 1,
+          ing: [].concat(data.recipeIngredient||[]).filter(Boolean),
+          steps, note: '',
+          source: 'link', url,
+        };
+        break;
+      }
+    } catch {}
+  }
+
+  // Fallback: basic text extraction
+  if (!rec) {
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const name = titleMatch ? titleMatch[1].trim().split(/[|\-–]/)[0].trim() : fallbackName;
+    rec = { id: uid(), cat: 'almuerzo', cats: [], name, time: '—', srv: 1, ing: [], steps: [], note: '', source: 'link', url };
+  }
+
+  if (!S.customRecipes) S.customRecipes = [];
+  S.customRecipes.push(rec);
+  save();
+
+  if (btn) { btn.textContent = '✅ Importada'; btn.style.background = 'var(--green)'; btn.style.borderColor = 'var(--green)'; }
+  showToast(`✅ "${rec.name.slice(0,30)}" importada — edítala para ajustar categoría`);
+}
 // ─────────────────────────────────────────────
 function openModal(html) {
   document.getElementById('modal-body').innerHTML =
