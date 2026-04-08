@@ -162,6 +162,15 @@ table.plan td.slot-lbl { background: var(--surface2); font-size: 11px; font-weig
   .tb { padding: 14px 10px; font-size: 12px; }
   .fg-row { grid-template-columns: 1fr; }
 }
+/* SYNC */
+.sync-btn { background: none; border: 1px solid var(--border); border-radius: 20px; color: var(--dim); cursor: pointer; font-size: 11px; padding: 4px 12px; white-space: nowrap; display: flex; align-items: center; gap: 5px; transition: all .15s; }
+.sync-btn:hover { border-color: var(--blue); color: var(--blue); }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); flex-shrink: 0; }
+.sync-dot.ok { background: var(--green); }
+.sync-dot.syncing { background: var(--yellow); animation: pulse .8s infinite; }
+.sync-dot.error { background: var(--red); }
+.sync-dot.off { background: var(--dim); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 </style>
 </head>
 <body>
@@ -174,6 +183,10 @@ table.plan td.slot-lbl { background: var(--surface2); font-size: 11px; font-weig
     <button class="tb" onclick="TAB('mercado')">🛒 Mercado</button>
     <button class="tb" onclick="TAB('recetas')">📖 Recetas</button>
   </nav>
+  <button class="sync-btn" onclick="openSyncConfig()" id="sync-btn">
+    <span class="sync-dot off" id="sync-dot"></span>
+    <span id="sync-label">☁️ Sync</span>
+  </button>
 </div>
 
 <main>
@@ -421,7 +434,10 @@ let S = {
   recCat: 'desayuno',
 };
 
-function save() { try { localStorage.setItem('cocina_v2', JSON.stringify(S)); } catch(e){} }
+function save() {
+  try { localStorage.setItem('cocina_v2', JSON.stringify(S)); } catch(e){}
+  schedulePush();
+}
 
 function load() {
   try {
@@ -1249,11 +1265,165 @@ function copyMD() {
 }
 
 // ─────────────────────────────────────────────
+// SYNC — GitHub Gist
+// ─────────────────────────────────────────────
+let _syncCfg = null;
+let _syncTimer = null;
+const GIST_FILE = 'cocina_state.json';
+
+function loadSyncCfg() {
+  try { _syncCfg = JSON.parse(localStorage.getItem('cocina_sync') || 'null'); } catch(e) { _syncCfg = null; }
+}
+function saveSyncCfg(cfg) {
+  _syncCfg = cfg;
+  localStorage.setItem('cocina_sync', cfg ? JSON.stringify(cfg) : 'null');
+}
+
+function setSyncStatus(state, text) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (!dot || !lbl) return;
+  dot.className = 'sync-dot ' + state;
+  lbl.textContent = text || (state === 'ok' ? '☁️ Sincronizado' : state === 'syncing' ? '☁️ Sincronizando…' : state === 'error' ? '⚠️ Error sync' : '☁️ Sync');
+}
+
+function schedulePush() {
+  if (!_syncCfg) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(pushToGist, 2500);
+}
+
+async function pushToGist() {
+  if (!_syncCfg) return;
+  setSyncStatus('syncing');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${_syncCfg.gistId}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${_syncCfg.token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(S) } } })
+    });
+    if (!res.ok) throw new Error(res.status);
+    setSyncStatus('ok', '☁️ Guardado');
+    setTimeout(() => setSyncStatus('ok', '☁️ Sync'), 3000);
+  } catch(e) {
+    setSyncStatus('error', '⚠️ Sin guardar');
+  }
+}
+
+async function pullFromGist(silent) {
+  if (!_syncCfg) return;
+  if (!silent) setSyncStatus('syncing', '☁️ Descargando…');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${_syncCfg.gistId}`, {
+      headers: { 'Authorization': `token ${_syncCfg.token}` }
+    });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    const content = data.files[GIST_FILE]?.content;
+    if (content) {
+      const remote = JSON.parse(content);
+      Object.assign(S, remote);
+      try { localStorage.setItem('cocina_v2', JSON.stringify(S)); } catch(e){}
+    }
+    setSyncStatus('ok', '☁️ Sync');
+    return true;
+  } catch(e) {
+    setSyncStatus('error', '⚠️ Error sync');
+    return false;
+  }
+}
+
+async function createGist(token) {
+  const res = await fetch('https://api.github.com/gists', {
+    method: 'POST',
+    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      description: '🥗 Sistema de Cocina — Estado',
+      public: false,
+      files: { [GIST_FILE]: { content: JSON.stringify(S) } }
+    })
+  });
+  if (!res.ok) throw new Error('No se pudo crear el Gist. Verifica el token.');
+  const data = await res.json();
+  return data.id;
+}
+
+function openSyncConfig() {
+  const cfg = _syncCfg;
+  openModal(`<h2>☁️ Sincronización entre dispositivos</h2>
+    <p style="color:var(--dim);font-size:12px;margin-bottom:16px;line-height:1.6">
+      Usa un <strong style="color:var(--text)">GitHub Gist privado</strong> como base de datos. Tus cambios se guardan automáticamente y están disponibles en cualquier dispositivo.
+    </p>
+    <div class="fg">
+      <label>Personal Access Token de GitHub</label>
+      <input id="sy-token" type="password" placeholder="ghp_xxxxxxxxxxxx" value="${cfg ? '••••••••••••' : ''}">
+      <div style="font-size:11px;color:var(--dim);margin-top:4px">
+        Ve a <strong>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong> y crea uno con scope <code style="background:var(--surface2);padding:1px 4px;border-radius:3px">gist</code>.
+      </div>
+    </div>
+    <div class="fg">
+      <label>Gist ID <span style="font-weight:400;text-transform:none">(se llena automáticamente al crear)</span></label>
+      <input id="sy-gist" type="text" placeholder="a1b2c3d4e5f6…" value="${cfg ? cfg.gistId : ''}">
+    </div>
+    <div style="background:var(--surface2);border-radius:var(--r);padding:12px;margin-bottom:12px;font-size:12px;color:var(--dim)">
+      <strong style="color:var(--text)">Pasos rápidos:</strong><br>
+      1. Crea el token con scope <code>gist</code><br>
+      2. Pégalo arriba y pulsa <strong>Crear Gist</strong><br>
+      3. El Gist ID se llena solo — guarda y listo
+    </div>
+    <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
+      ${cfg ? `<button class="btn btn-red" onclick="disconnectSync()">Desconectar</button>` : ''}
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-blue" onclick="doCreateGist()">Crear Gist nuevo</button>
+      <button class="btn btn-green" onclick="saveSync()">Guardar configuración</button>
+    </div>`);
+}
+
+async function doCreateGist() {
+  const token = document.getElementById('sy-token').value.trim();
+  if (!token || token.startsWith('•')) { alert('Pega tu token de GitHub primero.'); return; }
+  const btn = event.target; btn.textContent = 'Creando…'; btn.disabled = true;
+  try {
+    const id = await createGist(token);
+    document.getElementById('sy-gist').value = id;
+    btn.textContent = '✅ Gist creado';
+  } catch(e) {
+    alert(e.message);
+    btn.textContent = 'Crear Gist nuevo'; btn.disabled = false;
+  }
+}
+
+function saveSync() {
+  const rawToken = document.getElementById('sy-token').value.trim();
+  const gistId = document.getElementById('sy-gist').value.trim();
+  if (!gistId) { alert('Falta el Gist ID.'); return; }
+  const token = rawToken.startsWith('•') ? _syncCfg?.token : rawToken;
+  if (!token) { alert('Pega el token de GitHub.'); return; }
+  saveSyncCfg({ token, gistId });
+  closeModal();
+  setSyncStatus('ok', '☁️ Sync');
+  pushToGist();
+}
+
+function disconnectSync() {
+  if (!confirm('¿Desconectar la sincronización? Tus datos locales no se borran.')) return;
+  saveSyncCfg(null);
+  closeModal();
+  setSyncStatus('off', '☁️ Sync');
+}
+
+// ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
+loadSyncCfg();
 load();
 if (!S.curWeek) S.curWeek = getMonday(new Date());
-render();
+if (_syncCfg) {
+  setSyncStatus('syncing', '☁️ Sincronizando…');
+  pullFromGist(true).then(() => render());
+} else {
+  render();
+}
 </script>
 </body>
 </html>
