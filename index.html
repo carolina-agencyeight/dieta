@@ -3198,7 +3198,8 @@ function openSyncConfig() {
     </div>
     <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
       ${cfg ? `<button class="btn btn-red" onclick="disconnectSync()">Desconectar</button>` : ''}
-      ${cfg ? `<button class="btn" onclick="closeModal();pullFromGist().then(()=>render())">🔄 Sincronizar ahora</button>` : ''}
+      ${cfg ? `<button class="btn btn-green" onclick="closeModal();pushToGist().then(()=>showToast('✅ Datos subidos al Gist'))">⬆️ Subir mis datos</button>` : ''}
+      ${cfg ? `<button class="btn" onclick="closeModal();pullFromGist().then(()=>render())">⬇️ Descargar del Gist</button>` : ''}
       <button class="btn" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-blue" onclick="doCreateGist()">Crear Gist nuevo</button>
       <button class="btn btn-green" onclick="saveSync()">Guardar configuración</button>
