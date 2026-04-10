@@ -1173,7 +1173,7 @@ function openMealEdit(mon, di, mk) {
   const plan = getWeekPlan(mon);
   const day = plan[di];
   const meal = day.meals[mk];
-  const recs = getAllRecipes().filter(r => recCats(r).includes(mk));
+  const recs = getAllRecipes().filter(r => recCats(r).includes(mk) && !S.hiddenRecipes?.[r.id]);
   const chk = meal ? checkMealIngredients(meal) : null;
 
   let recOpts = `<option value="">— Sin comida —</option>`;
