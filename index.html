@@ -1757,9 +1757,9 @@ function openPlanShoppingList() {
   const allRecs = getAllRecipes();
   const missing = {}, low = {}, medium = {};
 
-  Object.values(week).forEach(dayMeals => {
-    if (!dayMeals) return;
-    Object.values(dayMeals).forEach(meal => {
+  (Array.isArray(week) ? week : Object.values(week)).forEach(day => {
+    if (!day?.meals) return;
+    Object.values(day.meals).forEach(meal => {
       if (!meal?.recipeId) return;
       const rec = allRecs.find(r => r.id === meal.recipeId);
       if (!rec) return;
