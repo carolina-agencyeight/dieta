@@ -684,7 +684,9 @@ let S = {
 };
 
 function save() {
-  try { localStorage.setItem('cocina_v2', JSON.stringify(S)); } catch(e){}
+  // Exclude transient UI state from persistence (search fields reset on load)
+  const {search, recSearch, mercSearch, ...toSave} = S;
+  try { localStorage.setItem('cocina_v2', JSON.stringify(toSave)); } catch(e){}
   schedulePush();
 }
 
