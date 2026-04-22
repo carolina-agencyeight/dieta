@@ -1536,14 +1536,20 @@ function findInvMatch(ingName) {
     if (nm === ing) {
       score = 100; // exact
     } else if (ing.length >= 4 && (nm.startsWith(ing + ' ') || nm.startsWith(ing + ','))) {
-      // Inventory starts with ingredient at a word boundary ("piña natural" matches "piña")
-      // Penalise " de X" suffix (leche ≠ leche de avena)
+      // Inventory starts with ingredient at word boundary ("piña de congelador" matches "piña")
+      // " de [ubicación]" → same item stored somewhere (score 60); " de [tipo]" → different item (score 20)
       const suffix = nm.slice(ing.length);
-      score = /^\s+de\s/.test(suffix) ? 20 : 80;
+      if (/^\s+de\s/.test(suffix)) {
+        const deWord = suffix.trim().replace(/^de\s+/, '').split(/\s+/)[0];
+        score = /^(nevera|congelador|despensa|refrigerador|cajón|cajon|freezer)$/.test(deWord) ? 60 : 20;
+      } else { score = 80; }
     } else if (nm.length >= 4 && (ing.startsWith(nm + ' ') || ing.startsWith(nm + ','))) {
       // Ingredient starts with inventory name at word boundary
       const suffix = ing.slice(nm.length);
-      score = /^\s+de\s/.test(suffix) ? 20 : 60;
+      if (/^\s+de\s/.test(suffix)) {
+        const deWord = suffix.trim().replace(/^de\s+/, '').split(/\s+/)[0];
+        score = /^(nevera|congelador|despensa|refrigerador|cajón|cajon|freezer)$/.test(deWord) ? 50 : 20;
+      } else { score = 60; }
     } else {
       // Word-level: ALL significant words (≥5 chars) of the SHORTER side must appear in the longer
       const ingW = ing.split(/[\s,\/]+/).filter(w => w.length >= 5);
