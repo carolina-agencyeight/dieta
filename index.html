@@ -3171,8 +3171,10 @@ async function pullFromGist(silent) {
     const content = data.files[GIST_FILE]?.content;
     if (content) {
       const remote = JSON.parse(content);
+      // Preserve in-memory transient state — don't let remote overwrite active searches
+      const { search, recSearch, mercSearch } = S;
       Object.assign(S, remote);
-      clearTransientState();
+      S.search = search; S.recSearch = recSearch; S.mercSearch = mercSearch;
       save();
     }
     setSyncStatus('ok', '☁️ Sync');
