@@ -810,6 +810,7 @@ function TAB(t) {
   document.querySelectorAll('.tb').forEach(b => b.classList.toggle('on', b.textContent.toLowerCase().includes(t.slice(0,4))));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-'+t));
   render();
+  save();
 }
 
 function render() {
