@@ -690,10 +690,14 @@ function save() {
   schedulePush();
 }
 
+function clearTransientState() {
+  S.search = ''; S.recSearch = ''; S.mercSearch = '';
+}
+
 function load() {
   try {
     const raw = localStorage.getItem('cocina_v2');
-    if (raw) { Object.assign(S, JSON.parse(raw)); return; }
+    if (raw) { Object.assign(S, JSON.parse(raw)); clearTransientState(); return; }
   } catch(e) {}
   // First run — seed
   S.inv = SEED_INV.map(x => ({...x}));
@@ -3167,7 +3171,8 @@ async function pullFromGist(silent) {
     if (content) {
       const remote = JSON.parse(content);
       Object.assign(S, remote);
-      try { localStorage.setItem('cocina_v2', JSON.stringify(S)); } catch(e){}
+      clearTransientState();
+      save();
     }
     setSyncStatus('ok', '☁️ Sync');
     return true;
