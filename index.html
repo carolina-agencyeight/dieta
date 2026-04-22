@@ -1497,6 +1497,8 @@ function stripIngQuantity(raw) {
   s = s.replace(/^\d+[\d/.,]?\s+/, '');
   s = s.replace(/\(.*?\)/g, '');
   s = s.replace(/\b(fresh|dried|frozen|chopped|minced|sliced|diced|grated|ground|whole|raw|cooked|peeled|pitted|rinsed|drained|softened|melted|room\s+temperature|to\s+taste|optional)\b/gi, '');
+  // Strip Spanish location/state qualifiers (kept for section detection in findInvMatch before this is called)
+  s = s.replace(/\b(fresc[ao]|congelad[ao]|refrigerada?|de\s+nevera|del?\s+congelador)\b/gi, '');
   // Take only first option when ingredient lists alternatives: "ron blanco o claro" → "ron blanco"
   s = s.replace(/\s+o\s+.+$/, '');
   s = s.replace(/^[,;\s]+|[,;\s]+$/g, '').replace(/\s{2,}/g, ' ').trim();
@@ -1505,7 +1507,15 @@ function stripIngQuantity(raw) {
 
 // Returns best inventory match for an ingredient name, or null if no confident match.
 // Returns the highest-scoring item; requires score ≥ 30 to count.
+// Supports section hints in ingredient: "piña fresca"→nevera, "piña congelada"→congelador.
 function findInvMatch(ingName) {
+  // Detect section preference BEFORE stripping (stripping removes these words)
+  const raw = ingName.toLowerCase();
+  let prefSec = null;
+  if (/\b(nevera|fresc[ao]|refrigerada?|de\s+nevera)\b/.test(raw))       prefSec = 'nevera';
+  else if (/\b(congelad[ao]|congelador|del?\s+congelador)\b/.test(raw))   prefSec = 'congelador';
+  else if (/\b(despensa)\b/.test(raw))                                     prefSec = 'despensa';
+
   const ing = stripIngQuantity(ingName);
   if (!ing || ing.length < 2) return null;
 
@@ -1524,7 +1534,7 @@ function findInvMatch(ingName) {
       const suffix = nm.slice(ing.length);
       score = /^\s+de\s/.test(suffix) ? 20 : 80;
     } else if (nm.length >= 4 && (ing.startsWith(nm + ' ') || ing.startsWith(nm + ','))) {
-      // Ingredient starts with inventory name at word boundary ("piña fresca" → "piña")
+      // Ingredient starts with inventory name at word boundary
       const suffix = ing.slice(nm.length);
       score = /^\s+de\s/.test(suffix) ? 20 : 60;
     } else {
@@ -1534,8 +1544,15 @@ function findInvMatch(ingName) {
       if (ingW.length >= 1 && nmW.length >= 1) {
         const [shorter, longer] = ingW.length <= nmW.length ? [ingW, nmW] : [nmW, ingW];
         const matched = shorter.filter(sw => longer.some(lw => lw === sw)).length;
-        if (matched === shorter.length) score = 30; // all words of shorter side found
+        if (matched === shorter.length) score = 30;
       }
+    }
+
+    // Section preference: boost matching section, penalize wrong section
+    if (score > 0 && prefSec) {
+      const itemSec = (item.sec || '').toLowerCase();
+      if (itemSec === prefSec)              score += 30;
+      else if (itemSec && itemSec !== prefSec) score = Math.floor(score * 0.3);
     }
 
     if (score > bestScore) { bestScore = score; best = item; }
