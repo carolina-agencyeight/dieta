@@ -1708,7 +1708,29 @@ function generatePlan() {
 // ─────────────────────────────────────────────
 function renderMercado() {
   const el = document.getElementById('p-mercado');
+  // Only rebuild shell if it doesn't exist yet (preserves search input focus)
+  if (!document.getElementById('mercado-list')) {
+    el.innerHTML = `<div class="sticky-bar" style="display:flex;flex-direction:column;gap:6px">
+      <div class="toolbar" style="margin-bottom:0">
+        <input id="merc-search-input" class="search" placeholder="Buscar en lista…" value="${esc(S.mercSearch||'')}"
+          oninput="S.mercSearch=this.value;renderMercadoList()" style="flex:1;min-width:120px">
+        <button class="btn btn-blue" onclick="renderMercadoList()">🔄</button>
+        <button class="btn" onclick="clearShopChk()">Desmarcar todo</button>
+        <button class="btn btn-green" onclick="openExportModal()">📤 Exportar</button>
+        <button class="btn" onclick="openPlanShoppingList()">📅 Plan semana</button>
+      </div>
+    </div>
+    <div id="mercado-list"></div>`;
+  }
+  renderMercadoList();
+}
+
+function renderMercadoList() {
+  const el = document.getElementById('mercado-list');
+  if (!el) { renderMercado(); return; }
+
   const now = new Date(); now.setHours(0,0,0,0);
+  const mq = (S.mercSearch||'').toLowerCase();
 
   const urgent = S.inv.filter(i => i.s === 'r');
   const expiring = S.inv.filter(i => {
@@ -1722,8 +1744,7 @@ function renderMercado() {
   function listItems(items, prefix) {
     const shown = mq ? items.filter(i => i.n.toLowerCase().includes(mq)) : items;
     if (!shown.length) return `<div class="shop-empty">${mq ? 'Sin resultados' : 'Ninguno'}</div>`;
-    items = shown;
-    return items.map(item => {
+    return shown.map(item => {
       const key = prefix + item.id;
       const chk = S.shopChk[key];
       const expI = item.e ? expiryInfo(item) : null;
@@ -1741,18 +1762,7 @@ function renderMercado() {
     }).join('');
   }
 
-  const mq = (S.mercSearch||'').toLowerCase();
-  let html = `<div class="sticky-bar" style="display:flex;flex-direction:column;gap:6px">
-    <div class="toolbar" style="margin-bottom:0">
-      <input class="search" placeholder="Buscar en lista…" value="${esc(S.mercSearch||'')}"
-        oninput="S.mercSearch=this.value;renderMercado()" style="flex:1;min-width:120px">
-      <button class="btn btn-blue" onclick="renderMercado()">🔄</button>
-      <button class="btn" onclick="clearShopChk()">Desmarcar todo</button>
-      <button class="btn btn-green" onclick="openExportModal()">📤 Exportar</button>
-      <button class="btn" onclick="openPlanShoppingList()">📅 Plan semana</button>
-    </div>
-  </div>
-  <div class="shop-sect">
+  el.innerHTML = `<div class="shop-sect">
     <h2>🔴 Urgente — Bajo o agotado (${urgent.length})</h2>
     ${listItems(urgent,'u')}
   </div>
@@ -1764,8 +1774,6 @@ function renderMercado() {
     <h2>🟡 Opcionales — En medio (${optional.length})</h2>
     ${listItems(optional,'o')}
   </div>`;
-
-  el.innerHTML = html;
 }
 
 function toggleShopChk(key, itemId) {
@@ -1777,10 +1785,10 @@ function toggleShopChk(key, itemId) {
     if (item) { item.s = 'g'; touchInv(); }
   }
   save();
-  renderMercado();
+  renderMercadoList();
 }
 
-function clearShopChk() { S.shopChk = {}; save(); renderMercado(); }
+function clearShopChk() { S.shopChk = {}; save(); renderMercadoList(); }
 
 function openPlanShoppingList() {
   const week = S.plans[S.curWeek] || {};
