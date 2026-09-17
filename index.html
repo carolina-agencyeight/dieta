@@ -3249,6 +3249,13 @@ function openReviewInventory() {
           <input id="rev-por" class="ie" type="number" min="1" max="99" value="${it.por||''}" placeholder="—" style="font-size:14px;padding:8px 10px;border-radius:8px">
         </div>
       </div>
+      <div class="fg-row" style="gap:8px;align-items:flex-end">
+        <div class="fg" style="flex:1">
+          <label>Fecha de vencimiento</label>
+          <input id="rev-e" class="ie" type="date" value="${esc(it.e||'')}" style="font-size:14px;padding:8px 10px;border-radius:8px">
+        </div>
+        <button type="button" class="btn btn-red" style="padding:8px 10px;margin-bottom:1px;flex-shrink:0" onclick="document.getElementById('rev-e').value=''">✕</button>
+      </div>
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:14px 0 8px">Estado</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
         ${['g','y','r'].map(s => `
@@ -3264,15 +3271,20 @@ function openReviewInventory() {
   }
 
   window.reviewSetStatus = (s) => {
-    items[idx].s = s; renderCard();
+    items[idx].s = s;
+    items[idx]._reviewChanged = true;
+    renderCard();
   };
   window.reviewConfirm = () => {
-    const qEl = document.getElementById('rev-qty');
-    const newQ = qEl ? qEl.value.trim() : items[idx].q;
+    const newQ = document.getElementById('rev-qty')?.value.trim();
     const newPor = parseInt(document.getElementById('rev-por')?.value) || null;
-    if (newQ !== items[idx].q || items[idx]._reviewChanged || newPor !== (items[idx].por||null)) changed++;
-    items[idx].q = newQ || '—';
-    items[idx].por = newPor;
+    const newE = document.getElementById('rev-e')?.value || null;
+    const it = items[idx];
+    if (newQ !== it.q || newPor !== (it.por||null) || newE !== (it.e||null) || it._reviewChanged) changed++;
+    it.q = newQ || '—';
+    it.por = newPor;
+    it.e = newE;
+    save(); // persist immediately so exiting early keeps progress
     idx++; renderCard();
   };
   window.reviewSkip = () => { idx++; renderCard(); };
