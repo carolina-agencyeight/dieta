@@ -1087,7 +1087,17 @@ function confirmEditItem(id) {
 }
 
 function deleteItem(id) {
-  if (!confirm('¿Eliminar este artículo?')) return;
+  const item = S.inv.find(i => i.id === id);
+  if (!item) return;
+  openModal(`<h2>Eliminar artículo</h2>
+    <p style="color:var(--dim);margin-bottom:20px">¿Eliminar <strong>${esc(item.n)}</strong>? Esta acción no se puede deshacer.</p>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-red" onclick="confirmDeleteItem('${id}')">Eliminar</button>
+    </div>`);
+}
+
+function confirmDeleteItem(id) {
   S.inv = S.inv.filter(i => i.id !== id);
   touchInv(); save(); closeModal(); renderInventory();
 }
@@ -2714,10 +2724,18 @@ function confirmAddRecipe() {
 }
 
 function deleteCustomRecipe(id) {
-  if (!confirm('¿Eliminar esta receta?')) return;
+  const rec = getAllRecipes().find(r => r.id === id);
+  openModal(`<h2>Eliminar receta</h2>
+    <p style="color:var(--dim);margin-bottom:20px">¿Eliminar <strong>${esc(rec?.name||'esta receta')}</strong>?</p>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-red" onclick="confirmDeleteRecipe('${id}')">Eliminar</button>
+    </div>`);
+}
+
+function confirmDeleteRecipe(id) {
   S.customRecipes = (S.customRecipes || []).filter(r => r.id !== id);
-  save();
-  renderRecetasGrid();
+  save(); closeModal(); renderRecetasGrid();
 }
 
 // ─── EDIT RECIPE ─────────────────────────────
@@ -2798,9 +2816,17 @@ function saveRecipeEdit(id) {
 }
 
 function resetRecipeEdits(id) {
-  if (!confirm('¿Descartar todos los cambios de esta receta?')) return;
+  openModal(`<h2>Descartar cambios</h2>
+    <p style="color:var(--dim);margin-bottom:20px">¿Descartar todos los cambios manuales de esta receta?</p>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-red" onclick="confirmResetRecipeEdits('${id}')">Descartar</button>
+    </div>`);
+}
+
+function confirmResetRecipeEdits(id) {
   if (S.recipeEdits) delete S.recipeEdits[id];
-  save(); renderRecetasGrid();
+  save(); closeModal(); renderRecetasGrid();
   showToast('↩️ Cambios descartados');
 }
 
@@ -3533,7 +3559,15 @@ function saveSync() {
 }
 
 function disconnectSync() {
-  if (!confirm('¿Desconectar la sincronización? Tus datos locales no se borran.')) return;
+  openModal(`<h2>Desconectar sync</h2>
+    <p style="color:var(--dim);margin-bottom:20px">Tus datos locales no se borran. Solo se desconecta el Gist.</p>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-red" onclick="confirmDisconnectSync()">Desconectar</button>
+    </div>`);
+}
+
+function confirmDisconnectSync() {
   saveSyncCfg(null);
   closeModal();
   setSyncStatus('off', '☁️ Sync');
