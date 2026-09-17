@@ -1644,63 +1644,65 @@ function generatePlan() {
   for (const mk of MEAL_KEYS) pools[mk] = best(mk);
 
   const plan = getWeekPlan(S.curWeek);
-  const days = plan.length; // typically 7
+  const days = plan.length;
 
-  // For fruit categories, pick 2-3 options and rotate through the week
+  // Variety limits per category (max different recipes used in the week)
+  const VARIETY = { ayuno: 2, desayuno: 3, mediaMañana: 3, almuerzo: 2, merienda: 3, cena: 2 };
+
+  // FRUIT CATS share a single pool so shopping stays manageable
+  // mediaMañana + merienda together draw from at most 3 unique fruits
   const FRUIT_CATS = ['mediaMañana', 'merienda'];
-  const weekFruits = {}; // { cat: [rec, rec, rec] }
+  const fruitCombined = [];
+  const fruitSeen = new Set();
   for (const fc of FRUIT_CATS) {
-    const pool = pools[fc];
-    if (!pool.length) continue;
-    // Pick 2-3 different fruits (up to pool size)
-    const numFruits = Math.min(pool.length, Math.random() < 0.5 ? 2 : 3);
-    weekFruits[fc] = shuffle(pool).slice(0, numFruits);
+    for (const r of pools[fc]) {
+      if (!fruitSeen.has(r.id)) { fruitSeen.add(r.id); fruitCombined.push(r); }
+    }
+  }
+  const weekFruitPool = shuffle(fruitCombined).slice(0, Math.min(fruitCombined.length, 3));
+
+  function fruitsForCat(cat) {
+    // Prefer recipes valid for this category; fall back to whole pool
+    const valid = weekFruitPool.filter(r => recCats(r).includes(cat));
+    return valid.length ? valid : weekFruitPool;
   }
 
-  // Build shuffled rotation for non-fruit categories
+  // Build limited rotations for every other category
   const rotations = {};
   for (const mk of MEAL_KEYS) {
     if (FRUIT_CATS.includes(mk)) continue;
     const pool = pools[mk];
     if (!pool.length) continue;
-    // Repeat pool enough times to cover all days, then shuffle
+    const variety = Math.min(pool.length, VARIETY[mk] || 2);
+    const selected = shuffle(pool).slice(0, variety);
     const repeated = [];
-    while (repeated.length < days) repeated.push(...pool);
+    while (repeated.length < days) repeated.push(...selected);
     rotations[mk] = shuffle(repeated.slice(0, days));
   }
 
   plan.forEach((day, di) => {
     for (const mk of MEAL_KEYS) {
-      // Skip prepared meals — never overwrite
-      if (day.meals[mk]?.prepared) continue;
+      if (day.meals[mk]?.prepared) continue; // never overwrite prepared meals
 
       if (FRUIT_CATS.includes(mk)) {
-        const fruits = weekFruits[mk];
-        if (fruits?.length) {
-          const rec = fruits[di % fruits.length]; // rotate through selected fruits
-          day.meals[mk] = {
-            name: rec.name,
-            recipeId: rec.id,
-            notes: rec.ing.slice(0,4).join(', '),
-            usesExp: usesExpiring(rec)
-          };
+        const fruits = fruitsForCat(mk);
+        if (fruits.length) {
+          const rec = fruits[di % fruits.length];
+          day.meals[mk] = { name: rec.name, recipeId: rec.id,
+            notes: rec.ing.slice(0,4).join(', '), usesExp: usesExpiring(rec) };
         }
       } else {
         const rot = rotations[mk];
         if (!rot) continue;
         const rec = rot[di];
-        day.meals[mk] = {
-          name: rec.name,
-          recipeId: rec.id,
-          notes: rec.ing.slice(0,4).join(', '),
-          usesExp: usesExpiring(rec)
-        };
+        day.meals[mk] = { name: rec.name, recipeId: rec.id,
+          notes: rec.ing.slice(0,4).join(', '), usesExp: usesExpiring(rec) };
       }
     }
   });
 
   save(); renderPlan();
-  showToast('✨ Semana generada con recetas mezcladas');
+  showToast('✨ Semana generada');
 }
 
 // ─────────────────────────────────────────────
