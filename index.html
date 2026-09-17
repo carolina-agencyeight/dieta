@@ -6,233 +6,235 @@
 <title>Sistema de Cocina</title>
 <style>
 :root {
-  --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
-  --text: #c9d1d9; --dim: #8b949e; --green: #3fb950; --yellow: #d29922;
-  --red: #f85149; --orange: #db6d28; --blue: #58a6ff; --r: 8px;
+  --bg:#f7f5fc; --surface:#fff; --surface2:#f0ecfa; --border:#e4dff4;
+  --text:#2b2545; --dim:#807a99; --green:#16a34a; --yellow:#c9820a;
+  --red:#dc2a3e; --orange:#c2700f; --blue:#6f63c9; --r:12px;
+  --shadow:0 1px 3px rgba(111,99,201,.07),0 6px 20px rgba(111,99,201,.09);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 
 /* HEADER */
-.hdr { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; }
-.logo { font-size: 15px; font-weight: 700; padding: 14px 0; white-space: nowrap; }
-.tabs { display: flex; gap: 2px; flex: 1; }
-.tb { background: none; border: none; border-bottom: 2px solid transparent; color: var(--dim); cursor: pointer; font-size: 13px; padding: 14px 14px; transition: color .15s; white-space: nowrap; }
-.tb:hover { color: var(--text); }
-.tb.on { color: var(--blue); border-bottom-color: var(--blue); }
-.hdr-actions { display: flex; gap: 8px; padding: 8px 0; }
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.logo{font-size:16px;font-weight:800;padding:13px 0;color:var(--blue);letter-spacing:-.02em}
+.hdr-actions{display:flex;gap:8px;padding:8px 0}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 4px calc(env(safe-area-inset-bottom) + 6px);z-index:100;box-shadow:0 -2px 12px rgba(111,99,201,.08)}
+.tb{border:none;background:none;color:var(--dim);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 10px;border-radius:10px;flex:1;transition:.15s;letter-spacing:.02em;font-family:inherit}
+.tb .tb-ic{font-size:22px;line-height:1;transition:.15s}
+.tb:hover{color:var(--text)}
+.tb.on{color:var(--blue)}
+.tb.on .tb-ic{transform:scale(1.12)}
 
 /* LAYOUT */
-main { padding: 20px; max-width: 1100px; margin: 0 auto; }
-.panel { display: none; }
-.panel.on { display: block; }
+main{padding:16px 20px 90px;max-width:1100px;margin:0 auto}
+.panel{display:none}
+.panel.on{display:block}
 
 /* BUTTONS */
-.btn { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); cursor: pointer; font-size: 12px; padding: 6px 12px; transition: background .15s; white-space: nowrap; }
-.btn:hover { background: var(--border); }
-.btn-blue { background: var(--blue); border-color: var(--blue); color: #000; font-weight: 600; }
-.btn-blue:hover { background: #79c0ff; border-color: #79c0ff; }
-.btn-green { background: var(--green); border-color: var(--green); color: #000; font-weight: 600; }
-.btn-green:hover { opacity: .85; }
-.btn-red { color: var(--red); }
-.btn-red:hover { background: rgba(248,81,73,.15); }
+.btn{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);cursor:pointer;font-size:12px;padding:7px 13px;transition:all .15s;white-space:nowrap;font-family:inherit;font-weight:500}
+.btn:hover{background:var(--surface2);border-color:var(--blue)}
+.btn-blue{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.btn-blue:hover{background:#5a4fb5;border-color:#5a4fb5}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.btn-green:hover{background:#15803d;border-color:#15803d}
+.btn-red{color:var(--red)}
+.btn-red:hover{background:rgba(220,42,62,.08);border-color:var(--red)}
 
 /* BANNERS */
-.banner { border-radius: var(--r); padding: 10px 14px; margin-bottom: 14px; font-size: 13px; }
-.banner-stale { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.3); color: var(--blue); }
-.banner-warn { background: rgba(219,109,40,.08); border: 1px solid rgba(219,109,40,.4); }
-.banner-warn h3 { font-size: 12px; font-weight: 700; color: var(--orange); margin-bottom: 6px; }
-.banner-crit { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.4); }
-.banner-crit h3 { font-size: 12px; font-weight: 700; color: var(--red); margin-bottom: 6px; }
-.chips { display: flex; flex-wrap: wrap; gap: 5px; }
-.chip { background: rgba(255,255,255,.06); padding: 2px 8px; border-radius: 12px; font-size: 11px; cursor: pointer; }
-.chip:hover { background: rgba(255,255,255,.12); }
+.banner{border-radius:var(--r);padding:12px 16px;margin-bottom:14px;font-size:13px}
+.banner-stale{background:rgba(111,99,201,.07);border:1px solid rgba(111,99,201,.2);color:var(--blue)}
+.banner-warn{background:rgba(194,112,15,.07);border:1px solid rgba(194,112,15,.3)}
+.banner-warn h3{font-size:12px;font-weight:700;color:var(--orange);margin-bottom:6px}
+.banner-crit{background:rgba(220,42,62,.07);border:1px solid rgba(220,42,62,.3)}
+.banner-crit h3{font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{background:var(--surface2);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:11px;cursor:pointer;font-weight:600}
+.chip:hover{background:var(--border)}
 
 /* TOOLBAR */
-.toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-.search { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-size: 13px; padding: 6px 12px; flex: 1; min-width: 180px; }
-.search:focus { outline: none; border-color: var(--blue); }
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.search{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;padding:8px 13px;flex:1;min-width:180px;font-family:inherit}
+.search:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(111,99,201,.1)}
 
 /* INVENTORY */
-.inv-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 10px; overflow: hidden; }
-.inv-hdr { padding: 10px 14px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
-.inv-hdr:hover { background: var(--border); }
-.inv-hdr-left { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
-.inv-body { overflow-x: auto; }
-table.inv { width: 100%; border-collapse: collapse; }
-table.inv th { text-align: left; padding: 7px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); border-bottom: 1px solid var(--border); white-space: nowrap; }
-table.inv th[onclick] { cursor: pointer; user-select: none; }
-table.inv th[onclick]:hover { color: var(--text); }
-table.inv th.sort-active { color: var(--blue); }
-table.inv td { padding: 5px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-/* Sticky first column */
-table.inv th:first-child { position: sticky; left: 0; z-index: 2; background: var(--surface2); box-shadow: 2px 0 6px rgba(0,0,0,.35); }
-table.inv td:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); box-shadow: 2px 0 6px rgba(0,0,0,.35); }
-table.inv tr.row-exp-soon td:first-child { background: #1e1b15; }
-table.inv tr.row-exp-past td:first-child { background: #1d1517; }
-table.inv tr:last-child td { border-bottom: none; }
-table.inv tr:hover td { background: rgba(255,255,255,.02); }
-table.inv tr.row-exp-soon td { background: rgba(219,109,40,.07); }
-table.inv tr.row-exp-past td { background: rgba(248,81,73,.07); }
-.item-name { font-size: 13px; }
-.item-name.hidden { display: none; }
-.item-qty { color: var(--dim); font-size: 12px; white-space: nowrap; }
+.inv-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow)}
+.inv-hdr{padding:11px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.inv-hdr:hover{background:var(--border)}
+.inv-hdr-left{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:var(--blue)}
+.inv-body{overflow-x:auto}
+table.inv{width:100%;border-collapse:collapse}
+table.inv th{text-align:left;padding:8px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);border-bottom:1px solid var(--border);background:var(--surface);white-space:nowrap}
+table.inv th[onclick]{cursor:pointer;user-select:none}
+table.inv th[onclick]:hover{color:var(--text)}
+table.inv th.sort-active{color:var(--blue)}
+table.inv td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle;background:var(--surface)}
+table.inv th:first-child{position:sticky;left:0;z-index:2;box-shadow:2px 0 8px rgba(111,99,201,.08)}
+table.inv td:first-child{position:sticky;left:0;z-index:1;box-shadow:2px 0 8px rgba(111,99,201,.08)}
+table.inv tr.row-exp-soon td{background:rgba(194,112,15,.06)}
+table.inv tr.row-exp-past td{background:rgba(220,42,62,.06)}
+table.inv tr.row-exp-soon td:first-child{background:rgba(194,112,15,.09)}
+table.inv tr.row-exp-past td:first-child{background:rgba(220,42,62,.09)}
+table.inv tr:last-child td{border-bottom:none}
+table.inv tr:hover td{background:var(--surface2)}
+.item-name{font-size:13px;font-weight:500}
+.item-name.hidden{display:none}
+.item-qty{color:var(--dim);font-size:12px;white-space:nowrap}
 
 /* STATUS BADGE */
-.sb { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer; user-select: none; white-space: nowrap; }
-.sb:hover { opacity: .8; }
-.sb.g { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
-.sb.y { background: rgba(210,153,34,.15); color: var(--yellow); border: 1px solid rgba(210,153,34,.35); }
-.sb.r { background: rgba(248,81,73,.15); color: var(--red); border: 1px solid rgba(248,81,73,.3); }
+.sb{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;user-select:none;white-space:nowrap}
+.sb:hover{opacity:.8}
+.sb.g{background:rgba(22,163,74,.1);color:var(--green);border:1px solid rgba(22,163,74,.25)}
+.sb.y{background:rgba(201,130,10,.1);color:var(--yellow);border:1px solid rgba(201,130,10,.25)}
+.sb.r{background:rgba(220,42,62,.1);color:var(--red);border:1px solid rgba(220,42,62,.25)}
 
 /* EXPIRY LABEL */
-.exp { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
-.exp-past { background: rgba(248,81,73,.2); color: var(--red); font-weight: 600; }
-.exp-today { background: rgba(219,109,40,.3); color: var(--orange); font-weight: 600; }
-.exp-soon { background: rgba(219,109,40,.15); color: var(--orange); }
-.exp-ok { color: var(--dim); }
+.exp{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;white-space:nowrap;font-weight:600}
+.exp-past{background:rgba(220,42,62,.1);color:var(--red)}
+.exp-today{background:rgba(194,112,15,.15);color:var(--orange)}
+.exp-soon{background:rgba(194,112,15,.08);color:var(--orange)}
+.exp-ok{color:var(--dim)}
 
 /* INLINE EDIT */
-.ie { background: var(--surface2); border: 1px solid var(--blue); border-radius: 4px; color: var(--text); font-size: 12px; padding: 3px 6px; width: 100%; min-width: 80px; }
-.ie:focus { outline: none; }
-.ie-date { min-width: 120px; }
+.ie{background:var(--surface);border:1px solid var(--blue);border-radius:6px;color:var(--text);font-size:12px;padding:3px 8px;width:100%;min-width:80px;font-family:inherit}
+.ie:focus{outline:none}
+.ie-date{min-width:120px}
 
-/* PLAN TAB */
-.plan-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-.week-lbl { font-size: 15px; font-weight: 600; min-width: 230px; text-align: center; }
-.plan-wrap { overflow-x: auto; }
-table.plan { width: 100%; border-collapse: collapse; min-width: 700px; }
-table.plan th { padding: 8px; text-align: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); background: var(--surface2); border: 1px solid var(--border); }
-table.plan td { border: 1px solid var(--border); padding: 6px 8px; vertical-align: top; width: 13%; }
-table.plan td.slot-lbl { background: var(--surface2); font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; width: 9%; text-align: right; padding-right: 10px; position: sticky; left: 0; z-index: 2; box-shadow: 2px 0 6px rgba(0,0,0,.35); }
-table.plan th.slot-lbl-hdr { position: sticky; left: 0; z-index: 3; background: var(--surface2); box-shadow: 2px 0 6px rgba(0,0,0,.35); }
-.meal-cell { min-height: 38px; cursor: pointer; border-radius: 4px; padding: 3px; }
-.meal-cell:hover { background: rgba(255,255,255,.05); }
-.meal-cell.empty { display: flex; align-items: center; justify-content: center; color: var(--border); font-size: 20px; }
-.meal-cell.empty:hover { color: var(--dim); }
-.meal-nm { font-size: 12px; font-weight: 500; line-height: 1.3; }
-.meal-ing { font-size: 10px; color: var(--dim); margin-top: 2px; }
-.meal-cell.gen { background: rgba(88,166,255,.07); }
-.meal-cell.uses-exp { background: rgba(219,109,40,.1); }
-.meal-cell.issues { background: rgba(248,81,73,.13); border: 1px solid rgba(248,81,73,.22); }
-.meal-cell.prepared { opacity: .5; }
-.meal-cell.prepared .meal-nm { text-decoration: line-through; }
-.meal-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; min-height: 18px; }
-.meal-issues-badge { font-size: 10px; color: var(--red); }
-.prep-btn { background: rgba(63,185,80,.15); border: 1px solid rgba(63,185,80,.35); border-radius: 3px; color: var(--green); cursor: pointer; font-size: 10px; font-weight: 700; line-height: 1.4; padding: 1px 6px; white-space: nowrap; }
-.prep-btn:hover { background: rgba(63,185,80,.3); }
-.ing-list { list-style: none; font-size: 12px; padding: 0; }
-.ing-list li { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.04); display: flex; align-items: center; gap: 7px; }
-.ing-list li:last-child { border-bottom: none; }
-.day-th.done { color: var(--green); text-decoration: line-through; }
+/* PLAN */
+.plan-hdr{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.week-lbl{font-size:15px;font-weight:700;min-width:210px;text-align:center;color:var(--text)}
+.week-nav{display:flex;align-items:center;gap:6px}
+.plan-days{display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));gap:10px}
+@media(max-width:1050px){.plan-days{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:640px){.plan-days{grid-template-columns:repeat(2,1fr)}}
+.plan-day-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .15s}
+.plan-day-card.today{border-color:var(--blue);box-shadow:0 0 0 2px rgba(111,99,201,.15),var(--shadow)}
+.plan-day-card.day-done{opacity:.7}
+.plan-day-hdr{padding:8px 11px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.plan-day-name{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.plan-day-date{font-size:17px;font-weight:800;color:var(--text);line-height:1;margin-top:1px}
+.plan-day-card.today .plan-day-date{color:var(--blue)}
+.plan-meal-slot{padding:7px 11px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.plan-meal-slot:last-child{border-bottom:none}
+.plan-meal-slot:hover{background:var(--surface2)}
+.plan-meal-slot.empty{display:flex;align-items:center;gap:7px;min-height:38px}
+.plus-ic{font-size:15px;color:var(--border)}
+.plan-meal-slot.empty:hover .plus-ic{color:var(--blue)}
+.plan-meal-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--dim)}
+.plan-meal-nm{font-size:11px;font-weight:600;color:var(--text);margin-top:2px;line-height:1.3}
+.plan-meal-slot.issues{background:rgba(220,42,62,.04)}
+.plan-meal-slot.issues .plan-meal-nm{color:var(--red)}
+.plan-meal-slot.uses-exp{background:rgba(194,112,15,.05)}
+.plan-meal-slot.prepared .plan-meal-nm{text-decoration:line-through;color:var(--dim)}
+.plan-meal-slot.gen{background:rgba(111,99,201,.03)}
+.prep-btn{background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.3);border-radius:6px;color:var(--green);cursor:pointer;font-size:10px;font-weight:700;padding:2px 8px;white-space:nowrap;margin-top:3px;font-family:inherit}
+.prep-btn:hover{background:rgba(22,163,74,.2)}
+.meal-issues-badge{font-size:9px;color:var(--red);margin-top:2px}
+.ing-list{list-style:none;font-size:13px;padding:0}
+.ing-list li{padding:5px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px}
+.ing-list li:last-child{border-bottom:none}
 
 /* SHOPPING */
-.shop-sect { margin-bottom: 22px; }
-.shop-sect h2 { font-size: 13px; font-weight: 700; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
-.shop-item { display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,.04); }
-.shop-item:last-child { border-bottom: none; }
-.shop-item label { cursor: pointer; font-size: 13px; flex: 1; }
-.shop-item.chk label { text-decoration: line-through; color: var(--dim); }
-.shop-item input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--green); flex-shrink: 0; }
-.shop-meta { font-size: 11px; color: var(--dim); }
-.shop-empty { color: var(--dim); font-size: 13px; font-style: italic; padding: 8px 4px; }
+.shop-sect{margin-bottom:22px}
+.shop-sect h2{font-size:13px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;color:var(--blue)}
+.shop-item{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border)}
+.shop-item:last-child{border-bottom:none}
+.shop-item label{cursor:pointer;font-size:13px;flex:1}
+.shop-item.chk label{text-decoration:line-through;color:var(--dim)}
+.shop-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--green);flex-shrink:0}
+.shop-meta{font-size:11px;color:var(--dim)}
+.shop-empty{color:var(--dim);font-size:13px;font-style:italic;padding:8px 4px}
 
 /* RECIPES */
-.rcat { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-.rcat-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; color: var(--dim); cursor: pointer; font-size: 12px; padding: 5px 14px; transition: all .15s; white-space: nowrap; }
-.rcat-btn:hover { color: var(--text); }
-.rcat-btn.on { background: var(--blue); border-color: var(--blue); color: #000; font-weight: 600; }
-.rec-toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-/* Sticky toolbars below the header */
-.sticky-bar { position: sticky; top: 49px; z-index: 50; background: var(--bg); padding: 8px 0 4px; margin: -8px -20px 10px; padding-left: 20px; padding-right: 20px; }
-.recipes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-/* Category pills (multi-select) */
-.cat-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-.cat-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--surface2); border: 2px solid var(--border); border-radius: 20px; color: var(--dim); cursor: pointer; font-size: 13px; padding: 8px 14px; transition: all .15s; user-select: none; min-height: 40px; }
-.cat-pill:hover { border-color: var(--blue); color: var(--text); }
-.cat-pill.sel { background: var(--blue); border-color: var(--blue); color: #000; font-weight: 600; }
-.cat-pill input[type=checkbox] { display: none; }
-.rcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
-.rcard-hdr { padding: 12px 16px; background: var(--surface2); cursor: pointer; user-select: none; }
-.rcard-hdr:hover { background: var(--border); }
-.rcard-hdr h3 { font-size: 13px; font-weight: 600; }
-.rcard-meta { font-size: 11px; color: var(--dim); margin-top: 3px; }
-.rcard-body { padding: 14px 16px; display: none; }
-.rcard-body.on { display: block; }
-.rcard-body h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); margin: 12px 0 5px; }
-.rcard-body h4:first-child { margin-top: 0; }
-.rcard-body ul, .rcard-body ol { padding-left: 16px; font-size: 13px; }
-.rcard-body li { margin-bottom: 3px; }
-.rcard-body .note { font-size: 11px; color: var(--dim); margin-top: 8px; font-style: italic; }
+.rcat{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.rcat-btn{background:var(--surface);border:1px solid var(--border);border-radius:20px;color:var(--dim);cursor:pointer;font-size:12px;padding:6px 14px;transition:all .15s;white-space:nowrap;font-family:inherit}
+.rcat-btn:hover{color:var(--text);border-color:var(--blue)}
+.rcat-btn.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.rec-toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sticky-bar{position:sticky;top:48px;z-index:50;background:var(--bg);padding:8px 0 4px;margin:-8px -20px 10px;padding-left:20px;padding-right:20px}
+.recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.cat-pills{display:flex;flex-wrap:wrap;gap:8px}
+.cat-pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:2px solid var(--border);border-radius:20px;color:var(--dim);cursor:pointer;font-size:13px;padding:7px 14px;transition:all .15s;user-select:none;min-height:40px}
+.cat-pill:hover{border-color:var(--blue);color:var(--text)}
+.cat-pill.sel{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.cat-pill input[type=checkbox]{display:none}
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.rcard-hdr{padding:12px 14px;background:var(--surface);cursor:pointer;user-select:none;border-bottom:1px solid transparent}
+.rcard-hdr:hover{background:var(--surface2)}
+.rcard-hdr h3{font-size:13px;font-weight:600;color:var(--text)}
+.rcard-meta{font-size:11px;color:var(--dim);margin-top:3px}
+.rcard-body{padding:14px 16px;display:none;border-top:1px solid var(--border)}
+.rcard-body.on{display:block}
+.rcard-body h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin:12px 0 5px}
+.rcard-body h4:first-child{margin-top:0}
+.rcard-body ul,.rcard-body ol{padding-left:16px;font-size:13px}
+.rcard-body li{margin-bottom:3px}
+.rcard-body .note{font-size:11px;color:var(--dim);margin-top:8px;font-style:italic}
 
 /* MODAL */
-.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: center; justify-content: center; }
-.overlay.on { display: flex; }
-.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 22px; width: 460px; max-width: 96vw; max-height: 85vh; overflow-y: auto; position: relative; }
-.modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; padding-right: 28px; }
-.modal-x { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--dim); cursor: pointer; font-size: 18px; line-height: 1; padding: 4px 7px; border-radius: 4px; }
-.modal-x:hover { color: var(--text); background: var(--border); }
-.fg { margin-bottom: 12px; }
-.fg label { display: block; font-size: 11px; color: var(--dim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
-.fg input, .fg select, .fg textarea { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-size: 13px; padding: 7px 10px; width: 100%; font-family: inherit; }
-.fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: var(--blue); }
-.fg textarea { min-height: 70px; resize: vertical; }
-.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
-.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.overlay{display:none;position:fixed;inset:0;background:rgba(43,37,69,.5);z-index:200;align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;width:480px;max-width:96vw;max-height:85vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(111,99,201,.18)}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:16px;padding-right:28px;color:var(--text)}
+.modal-x{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:18px;line-height:1;padding:4px 7px;border-radius:6px}
+.modal-x:hover{color:var(--text);background:var(--surface2)}
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:11px;color:var(--dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.fg input,.fg select,.fg textarea{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;width:100%;font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(111,99,201,.1)}
+.fg textarea{min-height:70px;resize:vertical}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-/* SOURCE TABS (add recipe modal) */
-.src-tab { background: var(--surface2); border: none; color: var(--dim); cursor: pointer; flex: 1; font-size: 13px; padding: 9px; transition: all .15s; }
-.src-tab:hover { color: var(--text); background: var(--border); }
-.src-tab.on { background: var(--blue); color: #000; font-weight: 600; }
-.src-badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; background: rgba(88,166,255,.15); color: var(--blue); margin-left: 4px; vertical-align: middle; }
+/* SOURCE TABS */
+.src-tab{background:var(--surface2);border:none;color:var(--dim);cursor:pointer;flex:1;font-size:13px;padding:9px;transition:all .15s;font-family:inherit}
+.src-tab:hover{color:var(--text);background:var(--border)}
+.src-tab.on{background:var(--blue);color:#fff;font-weight:600}
+.src-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(111,99,201,.1);color:var(--blue);margin-left:4px;vertical-align:middle;font-weight:600}
 
-/* EXPORT OPTIONS */
-.export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.export-opt { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); cursor: pointer; padding: 16px 12px; text-align: center; transition: border-color .15s, background .15s; }
-.export-opt:hover { border-color: var(--blue); background: var(--border); }
-.export-icon { font-size: 26px; margin-bottom: 6px; }
-.export-lbl { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
-.export-desc { font-size: 11px; color: var(--dim); line-height: 1.3; }
+/* EXPORT */
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.export-opt{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);cursor:pointer;padding:16px 12px;text-align:center;transition:all .15s;font-family:inherit}
+.export-opt:hover{border-color:var(--blue);background:var(--surface2)}
+.export-icon{font-size:26px;margin-bottom:6px}
+.export-lbl{font-size:13px;font-weight:600;margin-bottom:3px}
+.export-desc{font-size:11px;color:var(--dim);line-height:1.3}
 
-@media (max-width: 640px) {
-  main { padding: 12px; }
-  /* Header: tabs scroll, sync button shrinks to dot only */
-  .hdr { padding: 0 10px; gap: 4px; }
-  .logo { font-size: 13px; }
-  .tabs { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tb { padding: 12px 10px; font-size: 12px; flex-shrink: 0; }
-  #sync-label { display: none; }
-  .sync-btn { padding: 5px 8px; flex-shrink: 0; }
-  .fg-row { grid-template-columns: 1fr; }
-  .export-grid { grid-template-columns: 1fr 1fr; }
-}
 /* SYNC */
-.sync-btn { background: none; border: 1px solid var(--border); border-radius: 20px; color: var(--dim); cursor: pointer; font-size: 11px; padding: 4px 12px; white-space: nowrap; display: flex; align-items: center; gap: 5px; transition: all .15s; }
-.sync-btn:hover { border-color: var(--blue); color: var(--blue); }
-.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); flex-shrink: 0; }
-.sync-dot.ok { background: var(--green); }
-.sync-dot.syncing { background: var(--yellow); animation: pulse .8s infinite; }
-.sync-dot.error { background: var(--red); }
-.sync-dot.off { background: var(--dim); }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.sync-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--dim);cursor:pointer;font-size:11px;padding:5px 13px;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:all .15s;font-family:inherit}
+.sync-btn:hover{border-color:var(--blue);color:var(--blue)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.sync-dot.ok{background:var(--green)}
+.sync-dot.syncing{background:var(--yellow);animation:pulse .8s infinite}
+.sync-dot.error{background:var(--red)}
+.sync-dot.off{background:var(--dim)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+@media(max-width:640px){
+  main{padding:12px 12px 90px}
+  .sticky-bar{margin:-8px -12px 10px;padding-left:12px;padding-right:12px}
+  .hdr{padding:0 12px}
+  .fg-row{grid-template-columns:1fr}
+  #sync-label{display:none}
+}
 </style>
 </head>
 <body>
 
 <div class="hdr">
   <div class="logo">🥗 Cocina</div>
-  <nav class="tabs">
-    <button class="tb on" onclick="TAB('inventario')">📦 Inventario</button>
-    <button class="tb" onclick="TAB('plan')">📅 Plan</button>
-    <button class="tb" onclick="TAB('mercado')">🛒 Mercado</button>
-    <button class="tb" onclick="TAB('recetas')">📖 Recetas</button>
-  </nav>
   <button class="sync-btn" onclick="openSyncConfig()" id="sync-btn">
     <span class="sync-dot off" id="sync-dot"></span>
     <span id="sync-label">☁️ Sync</span>
   </button>
 </div>
+<nav class="bottom-nav">
+  <button class="tb on" onclick="TAB('inventario')"><span class="tb-ic">📦</span>Inventario</button>
+  <button class="tb" onclick="TAB('plan')"><span class="tb-ic">📅</span>Plan</button>
+  <button class="tb" onclick="TAB('mercado')"><span class="tb-ic">🛒</span>Mercado</button>
+  <button class="tb" onclick="TAB('recetas')"><span class="tb-ic">📖</span>Recetas</button>
+</nav>
 
 <main>
   <div id="p-inventario" class="panel on"></div>
@@ -656,6 +658,7 @@ const MEAL_LABELS = {
   almuerzo:'Almuerzo', merienda:'Merienda', cena:'Cena'
 };
 const MEAL_KEYS = ['ayuno','desayuno','mediaMañana','almuerzo','merienda','cena'];
+const MEAL_ICONS = {ayuno:'☕',desayuno:'🌅',mediaMañana:'🍌',almuerzo:'🍽️',merienda:'🍎',cena:'🌙'};
 const SECTIONS = ['congelador','nevera','despensa'];
 const SEC_LABELS = {congelador:'❄️ Congelador', nevera:'🧊 Nevera', despensa:'🧺 Despensa'};
 const CAT_LABELS = {ayuno:'Ayuno',desayuno:'Desayuno',mediaMañana:'Media mañana',almuerzo:'Almuerzo',merienda:'Merienda',cena:'Cena'};
@@ -891,6 +894,7 @@ function renderInventory() {
   html += `<div class="toolbar sticky-bar">
     <input class="search" type="text" placeholder="Buscar artículo…" value="${esc(S.search)}" oninput="onSearchInput(this)">
     <button class="btn btn-blue" onclick="openAddItem('congelador')">+ Añadir artículo</button>
+    <button class="btn" onclick="openReviewInventory()">🔍 Revisar</button>
     <button class="btn btn-green" onclick="openExportInventory()">📤 Exportar inventario</button>
   </div>
   <div id="inv-sections"></div>`;
@@ -946,7 +950,7 @@ function renderInvSections() {
           <td class="item-qty">${esc(item.q||'—')}</td>
           <td><span class="sb ${statusClass(item.s)}" onclick="cycleItemStatus('${item.id}')" title="Clic para cambiar">${statusLabel(item.s)}</span></td>
           <td>${expHtml}</td>
-          <td style="color:var(--dim);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.t||'')}</td>
+          <td style="color:var(--dim);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.por?`<span style="color:var(--blue);font-weight:700;margin-right:4px">🍽️${item.por}</span>`:''}${esc(item.t||'')}</td>
           <td><button class="btn" style="padding:3px 8px;font-size:11px" onclick="openEditItem('${item.id}')">Editar</button></td>
         </tr>`;
       }
@@ -1056,6 +1060,12 @@ function openEditItem(id) {
       </div>
       <div class="fg"><label>Nota</label><input id="ei-t" type="text" value="${esc(item.t||'')}"></div>
     </div>
+    <div class="fg-row">
+      <div class="fg"><label>Porciones disponibles esta semana</label>
+        <input id="ei-por" type="number" min="1" max="99" placeholder="ej: 4 (opcional)" value="${item.por||''}">
+        <small style="color:var(--dim);font-size:11px">Cuántas veces alcanza para usarlo esta semana. El plan mostrará ⚡ si se excede.</small>
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-red" onclick="deleteItem('${id}')">Eliminar</button>
       <button class="btn" onclick="closeModal()">Cancelar</button>
@@ -1072,6 +1082,7 @@ function confirmEditItem(id) {
   item.sec = document.getElementById('ei-sec').value;
   item.e = document.getElementById('ei-e').value || null;
   item.t = document.getElementById('ei-t').value.trim();
+  item.por = parseInt(document.getElementById('ei-por').value) || null;
   touchInv(); save(); closeModal(); renderInventory();
 }
 
@@ -1109,51 +1120,53 @@ function renderPlan() {
     </div>
     <button class="btn" onclick="goToday()">Hoy</button>
     <button class="btn btn-green" onclick="generatePlan()">✨ Generar semana</button>
+    <button class="btn" onclick="openExportPlan()">📤 Exportar</button>
     <button class="btn" onclick="clearPlan()">Limpiar</button>
-    <button class="btn" onclick="openExportPlan()">📤 Exportar plan</button>
-    <button class="btn" style="color:var(--dim)" onclick="openClaudeConfig()" title="Configurar IA para generar recetas">🤖</button>
+    <button class="btn" style="color:var(--blue)" onclick="openClaudeConfig()" title="Configurar IA">🤖 IA</button>
   </div>
-  <p style="color:var(--dim);font-size:12px;margin-bottom:14px">Clic en la celda para editar. Botón <strong style="color:var(--green)">✓ Preparar</strong> descuenta los ingredientes del inventario. Fondo <span style="color:var(--red)">rojo</span> = faltan ingredientes.</p>
-  <div class="plan-wrap"><table class="plan">
-  <thead><tr><th class="slot-lbl-hdr" style="text-align:right;padding-right:10px">Momento</th>`;
+  <div class="plan-days">`;
 
-  plan.forEach(day => {
+  const weekUsage = computeWeekUsage(plan);
+
+  plan.forEach((day, di) => {
     const isToday = day.date === todayStr;
-    html += `<th class="day-th ${day.done?'done':''}" style="${isToday?'color:var(--blue)':''}">
-      <div>${displayShort(day.date)}</div>
-      <div style="margin-top:3px">
-        <span class="sb ${day.done?'g':'y'}" style="cursor:pointer;font-size:10px" onclick="toggleDone('${S.curWeek}',${plan.indexOf(day)})">${day.done?'✅ Hecho':'⬜ Pendiente'}</span>
-      </div>
-    </th>`;
-  });
-  html += `</tr></thead><tbody>`;
+    const [dayName, dayNum] = displayShort(day.date).split(' ');
+    html += `<div class="plan-day-card${isToday?' today':''}${day.done?' day-done':''}">
+      <div class="plan-day-hdr">
+        <div>
+          <div class="plan-day-name">${dayName||displayShort(day.date)}</div>
+          <div class="plan-day-date">${dayNum||''}</div>
+        </div>
+        <span class="sb ${day.done?'g':'y'}" style="font-size:10px;padding:2px 7px" onclick="toggleDone('${S.curWeek}',${di})">${day.done?'✅':'⬜'}</span>
+      </div>`;
 
-  for (const mk of MEAL_KEYS) {
-    html += `<tr><td class="slot-lbl">${MEAL_LABELS[mk]}</td>`;
-    plan.forEach((day, di) => {
+    for (const mk of MEAL_KEYS) {
       const meal = day.meals[mk];
       if (meal) {
         const chk = checkMealIngredients(meal);
         const issueCount = chk ? chk.missing.length + chk.low.length : 0;
-        let cellCls = meal.prepared ? 'prepared' : issueCount > 0 ? 'issues' : meal.usesExp ? 'uses-exp' : 'gen';
-        html += `<td>
-          <div class="meal-cell ${cellCls}" onclick="openMealEdit('${S.curWeek}',${di},'${mk}')">
-            <div class="meal-nm">${esc(meal.name)}</div>
-            ${meal.notes ? `<div class="meal-ing">${esc(meal.notes)}</div>` : ''}
-            <div class="meal-footer">
-              <span class="meal-issues-badge">${meal.prepared ? '✅' : issueCount > 0 ? `⚠️ ${issueCount} falta${issueCount>1?'n':''}` : ''}</span>
-              ${!meal.prepared && meal.recipeId ? `<button class="prep-btn" onclick="event.stopPropagation();openQuickPrep('${S.curWeek}',${di},'${mk}')">✓ Preparar</button>` : ''}
-            </div>
-          </div>
-        </td>`;
+        const porW = porWarnings(meal, weekUsage);
+        const cls = meal.prepared ? 'prepared' : issueCount > 0 ? 'issues' : meal.usesExp ? 'uses-exp' : 'gen';
+        html += `<div class="plan-meal-slot ${cls}" onclick="openMealEdit('${S.curWeek}',${di},'${mk}')">
+          <div class="plan-meal-lbl">${MEAL_ICONS[mk]} ${MEAL_LABELS[mk]}</div>
+          <div class="plan-meal-nm">${esc(meal.name)}</div>
+          ${issueCount > 0 && !meal.prepared ? `<div class="meal-issues-badge">⚠️ ${issueCount} falta${issueCount>1?'n':''}</div>` : ''}
+          ${porW.length > 0 && !meal.prepared ? `<div class="meal-issues-badge" style="color:var(--orange)">⚡ ${porW.length === 1 ? esc(porW[0]) : porW.length + ' ingredientes'} justo${porW.length>1?'s':''}</div>` : ''}
+          ${meal.prepared ? `<div class="meal-issues-badge" style="color:var(--green)">✅ Preparado</div>` : ''}
+          ${!meal.prepared && meal.recipeId ? `<button class="prep-btn" onclick="event.stopPropagation();openQuickPrep('${S.curWeek}',${di},'${mk}')">✓ Preparar</button>` : ''}
+        </div>`;
       } else {
-        html += `<td onclick="openMealEdit('${S.curWeek}',${di},'${mk}')"><div class="meal-cell empty">+</div></td>`;
+        html += `<div class="plan-meal-slot empty" onclick="openMealEdit('${S.curWeek}',${di},'${mk}')">
+          <span class="plan-meal-lbl">${MEAL_ICONS[mk]}</span>
+          <span class="plus-ic">+</span>
+          <span class="plan-meal-lbl">${MEAL_LABELS[mk]}</span>
+        </div>`;
       }
-    });
-    html += `</tr>`;
-  }
+    }
+    html += `</div>`;
+  });
 
-  html += `</tbody></table></div>`;
+  html += `</div>`;
   el.innerHTML = html;
 }
 
@@ -1587,6 +1600,33 @@ function checkMealIngredients(meal) {
     else ok.push(ing);
   });
   return { missing, low, ok, recipe: rec };
+}
+
+function computeWeekUsage(plan) {
+  const usage = {}; // itemId → count of recipe uses this week
+  for (const day of plan) {
+    for (const mk of MEAL_KEYS) {
+      const meal = day.meals[mk];
+      if (!meal?.recipeId) continue;
+      const rec = getAllRecipes().find(r => r.id === meal.recipeId);
+      if (!rec) continue;
+      for (const ing of rec.ing) {
+        const item = findInvMatch(ing);
+        if (item?.por) usage[item.id] = (usage[item.id] || 0) + 1;
+      }
+    }
+  }
+  return usage;
+}
+
+function porWarnings(meal, weekUsage) {
+  if (!meal?.recipeId) return [];
+  const rec = getAllRecipes().find(r => r.id === meal.recipeId);
+  if (!rec) return [];
+  return rec.ing.filter(ing => {
+    const item = findInvMatch(ing);
+    return item?.por && (weekUsage[item.id] || 0) > item.por;
+  });
 }
 
 async function generatePlan() {
@@ -2198,6 +2238,7 @@ function renderRecetasGrid() {
     const isOpen = S.recOpen && S.recOpen[rec.id];
     const isCustom = !!(S.customRecipes||[]).find(r => r.id === rec.id);
     const hasEdits = !!(S.recipeEdits||{})[rec.id];
+    const aiBadge = rec.src === 'ai' ? '<span class="src-badge" style="background:rgba(111,99,201,.15);color:var(--blue)">🤖 IA</span>' : '';
     const srcBadge = isCustom && rec.source ? `<span class="src-badge">${rec.source==='foto'?'📷 Foto':rec.source==='link'?'🔗 Link':rec.source==='plan'?'📅 Plan':'✏️ Texto'}</span>` : (rec.source==='plan'?'<span class="src-badge">📅 Plan</span>':'');
     const editBadge = hasEdits ? '<span class="src-badge" style="background:rgba(63,185,80,.15);color:var(--green)">✏️ editada</span>' : '';
     const allCats = recCats(rec);
@@ -2211,7 +2252,7 @@ function renderRecetasGrid() {
       <div class="rcard-hdr" onclick="toggleRec('${rec.id}')">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
           <div>
-            <h3>${esc(rec.name)}${srcBadge}${editBadge}${catBadges}</h3>
+            <h3>${esc(rec.name)}${aiBadge}${srcBadge}${editBadge}${catBadges}</h3>
             <div class="rcard-meta">⏱ ${esc(rec.time||'—')} · 🍽 ${rec.srv||1} porción${(rec.srv||1)>1?'es':''}</div>
           </div>
           <div style="display:flex;gap:4px;flex-shrink:0;margin-top:1px">
@@ -3155,6 +3196,92 @@ function buildInvCSV() {
   return csv;
 }
 
+function openReviewInventory() {
+  const items = S.inv.filter(i => !i.hidden);
+  if (!items.length) { showToast('No hay artículos en el inventario'); return; }
+  let idx = 0, changed = 0;
+  const SEC_ICON = { congelador:'❄️', nevera:'🧊', despensa:'🗄️' };
+  const STATUS_LABEL = { g:'Lleno', y:'Medio', r:'Bajo' };
+  const STATUS_COLOR = { g:'rgba(22,163,74,.12)', y:'rgba(201,130,10,.12)', r:'rgba(220,42,62,.12)' };
+  const STATUS_BORDER = { g:'#16a34a', y:'#c9820a', r:'#dc2a3e' };
+
+  function renderCard() {
+    if (idx >= items.length) {
+      touchInv(); save(); renderInventory();
+      document.getElementById('modal-body').innerHTML = `
+        <button class="modal-x" onclick="closeModal()">✕</button>
+        <div style="text-align:center;padding:24px 0 8px">
+          <div style="font-size:40px;margin-bottom:14px">✅</div>
+          <h2 style="margin-bottom:8px">Inventario actualizado</h2>
+          <p style="color:var(--dim);font-size:14px">${changed} artículo${changed!==1?'s':''} modificado${changed!==1?'s':''} · ${items.length - changed} sin cambios</p>
+        </div>
+        <div class="modal-footer"><button class="btn btn-blue" onclick="closeModal()">Listo</button></div>`;
+      return;
+    }
+    const it = items[idx];
+    const pct = Math.round(idx / items.length * 100);
+    document.getElementById('modal-body').innerHTML = `
+      <button class="modal-x" onclick="closeModal()">✕</button>
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--dim);font-weight:600">${idx + 1} de ${items.length}</span>
+          <button onclick="reviewSkipAll()" style="font-size:12px;color:var(--dim);background:none;border:none;cursor:pointer">Saltar todo</button>
+        </div>
+        <div style="height:5px;background:var(--border);border-radius:10px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:var(--blue);border-radius:10px;transition:width .3s"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px">
+        <div style="font-size:32px;line-height:1;flex-shrink:0">${SEC_ICON[it.sec]||'📦'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px">${esc(it.n)}</div>
+          <div style="font-size:12px;color:var(--dim);text-transform:capitalize">${it.sec||''}</div>
+          ${it.t ? `<div style="font-size:12px;color:var(--dim);margin-top:3px;font-style:italic">${esc(it.t)}</div>` : ''}
+        </div>
+      </div>
+      <div class="fg-row" style="gap:8px">
+        <div class="fg" style="flex:2">
+          <label>Cantidad</label>
+          <input id="rev-qty" class="ie" type="text" value="${esc(it.q||'')}" placeholder="ej: 1 bolsa, 3 uds, ½ taza" style="font-size:14px;padding:8px 10px;border-radius:8px">
+        </div>
+        <div class="fg" style="flex:1">
+          <label>Porciones/sem. 🍽️</label>
+          <input id="rev-por" class="ie" type="number" min="1" max="99" value="${it.por||''}" placeholder="—" style="font-size:14px;padding:8px 10px;border-radius:8px">
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:14px 0 8px">Estado</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
+        ${['g','y','r'].map(s => `
+          <button onclick="reviewSetStatus('${s}')" style="padding:10px 6px;border-radius:10px;border:2px solid ${it.s===s?STATUS_BORDER[s]:'var(--border)'};background:${it.s===s?STATUS_COLOR[s]:'transparent'};cursor:pointer;font-size:13px;font-weight:600;color:var(--text);transition:.15s;font-family:inherit">
+            ${s==='g'?'🟢':s==='y'?'🟡':'🔴'}<br>${STATUS_LABEL[s]}
+          </button>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="reviewConfirm()" class="btn btn-blue" style="flex:1">✓ Confirmar</button>
+        <button onclick="reviewSkip()" class="btn" style="color:var(--dim)">Saltar</button>
+      </div>`;
+    setTimeout(() => document.getElementById('rev-qty')?.focus(), 50);
+  }
+
+  window.reviewSetStatus = (s) => {
+    items[idx].s = s; renderCard();
+  };
+  window.reviewConfirm = () => {
+    const qEl = document.getElementById('rev-qty');
+    const newQ = qEl ? qEl.value.trim() : items[idx].q;
+    const newPor = parseInt(document.getElementById('rev-por')?.value) || null;
+    if (newQ !== items[idx].q || items[idx]._reviewChanged || newPor !== (items[idx].por||null)) changed++;
+    items[idx].q = newQ || '—';
+    items[idx].por = newPor;
+    idx++; renderCard();
+  };
+  window.reviewSkip = () => { idx++; renderCard(); };
+  window.reviewSkipAll = () => { idx = items.length; renderCard(); };
+
+  openModal('');
+  renderCard();
+}
+
 function openExportInventory() {
   openModal(`<h2>📤 Exportar inventario</h2>
     <div class="export-grid">
@@ -3173,6 +3300,10 @@ function openExportInventory() {
       <button class="export-opt" onclick="invExportShare()" ${!navigator.share?'style="opacity:.4;cursor:not-allowed"':''}>
         <div class="export-icon">📲</div><div class="export-lbl">Compartir</div>
         <div class="export-desc">${navigator.share?'Hoja nativa del sistema':'No disponible'}</div>
+      </button>
+      <button class="export-opt" onclick="invExportBackup()">
+        <div class="export-icon">💾</div><div class="export-lbl">Backup completo</div>
+        <div class="export-desc">JSON con todos los datos de la app</div>
       </button>
     </div>
     <div class="modal-footer"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
@@ -3227,6 +3358,20 @@ async function invExportShare() {
   if (!navigator.share) return;
   try { await navigator.share({ title:'📦 Inventario', text: buildInvText() }); closeModal(); }
   catch(e) {}
+}
+
+function invExportBackup() {
+  const { search, recSearch, mercSearch, ...data } = S;
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cocina_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  closeModal();
+  showToast('💾 Backup descargado');
 }
 
 // ─────────────────────────────────────────────
