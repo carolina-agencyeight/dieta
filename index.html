@@ -1667,17 +1667,60 @@ function generatePlan() {
     return valid.length ? valid : weekFruitPool;
   }
 
-  // Build limited rotations for every other category
+  // Detect the main protein of a recipe from name + ingredients
+  const PROTEIN_KW = ['tilapia','salmón','salmon','pechuga','pollo','cerdo','lomo','carne',
+    'atún','atun','camarón','camaron','salmón','tofu','garbanzos','lentejas','res',
+    'costilla','bistec','cordero','langostino','sardina','bacalao','trucha'];
+  function detectProtein(rec) {
+    const text = (rec.name + ' ' + (rec.ing||[]).join(' ')).toLowerCase();
+    return PROTEIN_KW.find(p => text.includes(p)) || '__other__';
+  }
+
+  // For main meal slots: group pool by protein, pick 2 protein groups,
+  // then interleave ALL recipes from those groups across the week.
+  // Result: same protein budget but many different dishes.
+  function buildProteinRotation(pool, days) {
+    const groups = {};
+    for (const r of pool) {
+      const p = detectProtein(r);
+      if (!groups[p]) groups[p] = [];
+      groups[p].push(r);
+    }
+    // Score each group by its top recipe; pick best 2
+    const ranked = Object.values(groups)
+      .map(recs => ({ recs: shuffle(recs), score: Math.max(...recs.map(r => r.score||0)) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 2);
+    if (!ranked.length) return [];
+    // Interleave: day0→groupA[0], day1→groupB[0], day2→groupA[1], …
+    const rotation = [];
+    const ptrs = ranked.map(() => 0);
+    for (let d = 0; d < days; d++) {
+      const g = ranked[d % ranked.length];
+      const ptr = ptrs[d % ranked.length];
+      rotation.push(g.recs[ptr % g.recs.length]);
+      ptrs[d % ranked.length]++;
+    }
+    return rotation;
+  }
+
+  // Build rotations: protein-aware for main meals, variety-limited for others
+  const PROTEIN_CATS = ['almuerzo', 'cena'];
+  const VARIETY = { ayuno: 2, desayuno: 3 };
   const rotations = {};
   for (const mk of MEAL_KEYS) {
     if (FRUIT_CATS.includes(mk)) continue;
     const pool = pools[mk];
     if (!pool.length) continue;
-    const variety = Math.min(pool.length, VARIETY[mk] || 2);
-    const selected = shuffle(pool).slice(0, variety);
-    const repeated = [];
-    while (repeated.length < days) repeated.push(...selected);
-    rotations[mk] = shuffle(repeated.slice(0, days));
+    if (PROTEIN_CATS.includes(mk)) {
+      rotations[mk] = buildProteinRotation(pool, days);
+    } else {
+      const variety = Math.min(pool.length, VARIETY[mk] || 2);
+      const selected = shuffle(pool).slice(0, variety);
+      const repeated = [];
+      while (repeated.length < days) repeated.push(...selected);
+      rotations[mk] = repeated.slice(0, days);
+    }
   }
 
   plan.forEach((day, di) => {
