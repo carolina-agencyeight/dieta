@@ -1111,6 +1111,7 @@ function renderPlan() {
     <button class="btn btn-green" onclick="generatePlan()">✨ Generar semana</button>
     <button class="btn" onclick="clearPlan()">Limpiar</button>
     <button class="btn" onclick="openExportPlan()">📤 Exportar plan</button>
+    <button class="btn" style="color:var(--dim)" onclick="openClaudeConfig()" title="Configurar IA para generar recetas">🤖</button>
   </div>
   <p style="color:var(--dim);font-size:12px;margin-bottom:14px">Clic en la celda para editar. Botón <strong style="color:var(--green)">✓ Preparar</strong> descuenta los ingredientes del inventario. Fondo <span style="color:var(--red)">rojo</span> = faltan ingredientes.</p>
   <div class="plan-wrap"><table class="plan">
@@ -1588,7 +1589,7 @@ function checkMealIngredients(meal) {
   return { missing, low, ok, recipe: rec };
 }
 
-function generatePlan() {
+async function generatePlan() {
   const now = new Date(); now.setHours(0,0,0,0);
 
   function findItem(ingName) { return findInvMatch(ingName); }
@@ -1706,7 +1707,6 @@ function generatePlan() {
 
   // Build rotations: protein-aware for main meals, variety-limited for others
   const PROTEIN_CATS = ['almuerzo', 'cena'];
-  const VARIETY = { ayuno: 2, desayuno: 3 };
   const rotations = {};
   for (const mk of MEAL_KEYS) {
     if (FRUIT_CATS.includes(mk)) continue;
@@ -1743,6 +1743,63 @@ function generatePlan() {
       }
     }
   });
+
+  // If Claude key is configured and any protein group has < 3 recipes, offer AI suggestions
+  if (getClaudeKey()) {
+    const PROTEIN_CATS_CHECK = ['almuerzo', 'cena'];
+    for (const mk of PROTEIN_CATS_CHECK) {
+      const pool = pools[mk];
+      if (!pool.length) continue;
+
+      // Find the top protein group that was selected
+      const groups = {};
+      for (const r of pool) {
+        const p = detectProtein(r);
+        if (!groups[p]) groups[p] = [];
+        groups[p].push(r);
+      }
+      const topGroups = Object.entries(groups)
+        .map(([p, recs]) => ({ p, recs, score: Math.max(...recs.map(r => r.score||0)) }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 2);
+
+      for (const grp of topGroups) {
+        if (grp.p === '__other__') continue;
+        if (grp.recs.length < 3) {
+          // Offer AI generation for this protein before building the plan
+          await new Promise(resolve => {
+            openAISuggestModal(
+              grp.p, mk,
+              grp.recs.map(r => r.name),
+              () => { resolve(); }
+            );
+            // Also resolve if user cancels (modal closes without saving)
+            const orig = closeModal;
+            closeModal = () => { orig(); resolve(); closeModal = orig; };
+          });
+          // Rebuild pools after potentially adding new recipes
+          for (const k of MEAL_KEYS) pools[k] = best(k);
+          break;
+        }
+      }
+    }
+  }
+
+  // Rebuild rotations with updated pools
+  for (const mk of MEAL_KEYS) {
+    if (FRUIT_CATS.includes(mk)) continue;
+    const pool = pools[mk];
+    if (!pool.length) continue;
+    if (PROTEIN_CATS.includes(mk)) {
+      rotations[mk] = buildProteinRotation(pool, days);
+    } else {
+      const variety = Math.min(pool.length, VARIETY[mk] || 2);
+      const selected = shuffle(pool).slice(0, variety);
+      const repeated = [];
+      while (repeated.length < days) repeated.push(...selected);
+      rotations[mk] = repeated.slice(0, days);
+    }
+  }
 
   save(); renderPlan();
   showToast('✨ Semana generada');
@@ -3323,6 +3380,136 @@ function disconnectSync() {
   saveSyncCfg(null);
   closeModal();
   setSyncStatus('off', '☁️ Sync');
+}
+
+// ─────────────────────────────────────────────
+// AI RECIPE GENERATION
+// ─────────────────────────────────────────────
+
+function getClaudeKey() {
+  try { return localStorage.getItem('cocina_claude_key') || ''; } catch { return ''; }
+}
+function saveClaudeKey(k) {
+  try { localStorage.setItem('cocina_claude_key', k); } catch {}
+}
+
+function openClaudeConfig() {
+  const key = getClaudeKey();
+  openModal(`<h2>✨ Generación de recetas con IA</h2>
+    <p style="color:var(--dim);font-size:12px;margin-bottom:16px;line-height:1.6">
+      Usa <strong style="color:var(--text)">Claude (Anthropic)</strong> para generar recetas nuevas cuando la semana no tiene suficiente variedad. La clave se guarda solo en este dispositivo y nunca se sube al Gist.
+    </p>
+    <div class="fg">
+      <label>Anthropic API Key</label>
+      <input id="cl-key" type="password" placeholder="sk-ant-xxxxxxxxxxxx" value="${key ? '••••••••••••' : ''}">
+      <div style="font-size:11px;color:var(--dim);margin-top:4px">
+        Créala en <strong>console.anthropic.com → API Keys</strong>. Se usa el modelo Haiku (el más económico).
+      </div>
+    </div>
+    <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
+      ${key ? `<button class="btn btn-red" onclick="saveClaudeKey('');closeModal();showToast('Clave eliminada')">Eliminar clave</button>` : ''}
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="saveClaudeKeyFromModal()">Guardar</button>
+    </div>`);
+}
+
+function saveClaudeKeyFromModal() {
+  const raw = document.getElementById('cl-key').value.trim();
+  if (!raw || raw.startsWith('•')) { closeModal(); return; }
+  saveClaudeKey(raw);
+  closeModal();
+  showToast('✅ Clave guardada');
+}
+
+// Ask the Netlify function to suggest recipes for a protein + available ingredients
+async function suggestRecipesAI(protein, mealCat, existingRecipeNames) {
+  const claudeKey = getClaudeKey();
+  if (!claudeKey) return null;
+
+  // Only pass good/medium inventory items as available ingredients
+  const available = S.inv
+    .filter(i => i.s === 'g' || i.s === 'y')
+    .map(i => i.n);
+
+  try {
+    const res = await fetch('/api/suggest-recipes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-claude-key': claudeKey },
+      body: JSON.stringify({ protein, availableIngredients: available, existingRecipeNames, mealCat }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.recipes || null;
+  } catch {
+    return null;
+  }
+}
+
+// Show AI-suggested recipes and let user save them before plan is built
+async function openAISuggestModal(protein, mealCat, existingRecipeNames, onSaved) {
+  openModal(`<h2>✨ Generando recetas de ${protein}…</h2>
+    <p style="color:var(--dim)">Consultando a Claude, un momento…</p>`);
+
+  const recipes = await suggestRecipesAI(protein, mealCat, existingRecipeNames);
+
+  if (!recipes || !recipes.length) {
+    openModal(`<h2>✨ Sugerencias IA</h2>
+      <p style="color:var(--red)">No se pudieron generar recetas. Verifica tu API key en ☁️ Sync → ✨ IA.</p>
+      <div class="modal-footer"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
+    return;
+  }
+
+  // Render each suggestion with a checkbox to save
+  const items = recipes.map((r, i) => `
+    <div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+      <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">
+        <input type="checkbox" id="ai-rec-${i}" checked style="margin-top:3px;flex-shrink:0">
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">${esc(r.name)}</div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:4px">⏱ ${esc(r.time||'—')} · ${esc(r.ing?.length||0)} ingredientes</div>
+          <div style="font-size:11px;color:var(--dim)">${(r.ing||[]).slice(0,5).map(esc).join(', ')}${(r.ing||[]).length>5?'…':''}</div>
+        </div>
+      </label>
+    </div>`).join('');
+
+  window._aiSuggestedRecipes = recipes;
+  window._aiSuggestCat = mealCat;
+  window._aiSuggestOnSaved = onSaved;
+
+  openModal(`<h2>✨ Recetas sugeridas — ${protein}</h2>
+    <p style="font-size:12px;color:var(--dim);margin-bottom:12px">Selecciona las que quieres guardar al recetario:</p>
+    ${items}
+    <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="saveAISuggestions()">💾 Guardar seleccionadas</button>
+    </div>`);
+}
+
+function saveAISuggestions() {
+  const recipes = window._aiSuggestedRecipes || [];
+  const cat = window._aiSuggestCat || 'almuerzo';
+  const onSaved = window._aiSuggestOnSaved;
+  if (!S.customRecipes) S.customRecipes = [];
+
+  let saved = 0;
+  recipes.forEach((r, i) => {
+    if (!document.getElementById(`ai-rec-${i}`)?.checked) return;
+    const id = 'ai_' + Date.now() + '_' + i;
+    S.customRecipes.push({
+      id, name: r.name,
+      cats: [cat],
+      ing: r.ing || [],
+      steps: r.steps || [],
+      time: r.time || '—',
+      srv: 1,
+      src: 'ai',
+    });
+    saved++;
+  });
+
+  if (saved) { save(); showToast(`✅ ${saved} receta${saved>1?'s':''} guardada${saved>1?'s':''}`); }
+  closeModal();
+  if (onSaved) onSaved();
 }
 
 // ─────────────────────────────────────────────
